@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-node_modules/
-.env
 CLAUDE.md
-=======
 # Logs
 logs
 *.log
@@ -152,4 +148,3 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
->>>>>>> 5e3adb9d262ddd5f211a5e4aadec40c04b54e819
