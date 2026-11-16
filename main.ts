@@ -1,7 +1,7 @@
 // imports do bcb.ts
 import { dadosExtraidos } from "./bcb.ts";
 // imports do calculos.ts
-import { calculoFator, fatorParaTaxa, transformarValor } from "./calculos.ts";
+import { taxasParaFator, fatorParaTaxa, aplicarFator, ganhoSobreReferencia } from "./calculos.ts";
 
 async function processarInput(valor: number, tempo: number): Promise<number> {
   const codIpca = 433;
@@ -11,22 +11,26 @@ async function processarInput(valor: number, tempo: number): Promise<number> {
     // IPCA
 
     const ipcaMensal = await dadosExtraidos(codIpca, tempo); // Vetor de números extraidos do BACEN
-    const fatorAcumuladoIpca = calculoFator(ipcaMensal); // Multiplicacao acumulada de valores do periodo
+    const fatorAcumuladoIpca = taxasParaFator(ipcaMensal); // Multiplicacao acumulada de valores do periodo
     const taxaPeriodoIpca = fatorParaTaxa(fatorAcumuladoIpca); // Transforma fator em taxa
     const taxaIpca = taxaPeriodoIpca.toFixed(2); // Arredonda exibição das casas.
 
     // POUPANÇA
 
     const poupMensal = await dadosExtraidos(codPoup, tempo);
-    const fatorAcumuladoPoup = calculoFator(poupMensal);
+    const fatorAcumuladoPoup = taxasParaFator(poupMensal);
     const taxaPeriodoPoup = fatorParaTaxa(fatorAcumuladoPoup);
     const taxaPoup = taxaPeriodoPoup.toFixed(2);
 
-    const performanceInflacao = transformarValor(valor, fatorAcumuladoIpca);
+    const performanceInflacao = aplicarFator(valor, fatorAcumuladoIpca);
+    // const performanceBruta =
+    //   transformarValor(valor, fatorAcumuladoPoup) - valor;
+    // const performanceReal =
+    //   transformarValor(valor, fatorAcumuladoPoup) - performanceInflacao;
     const performanceBruta =
-      transformarValor(valor, fatorAcumuladoPoup) - valor;
+      ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1);
     const performanceReal =
-      transformarValor(valor, fatorAcumuladoPoup) - performanceInflacao;
+      ganhoSobreReferencia(valor, fatorAcumuladoPoup, fatorAcumuladoIpca);
 
     console.log(
       taxaIpca,
