@@ -12,14 +12,23 @@ export function fatorParaTaxa(fator: number): number {
 }
 
 export function aplicarFator(valor: number, fator: number): number {
-  // Dinheiro X Fator = Como o Dinheiro se transformou diante das condições do período.
   const transformado = valor * fator;
   return transformado;
 }
 
-// BASE DE CÁLCULO APLICAÇAO (valor × fatorPoup − valor x referênciaDeGanho) -> 1, IPCA
-export function ganhoSobreReferencia(valor: number, fatorAplicacao: number, fatorReferencia: number): number {
-  const ganho = ((valor * fatorAplicacao) - (valor * fatorReferencia));
+export function ganhoSobreReferencia(
+  valor: number,
+  fatorAplicacao: number,
+  fatorReferencia: number,
+): number {
+  const ganho = valor * fatorAplicacao - valor * fatorReferencia;
   return ganho;
 }
 
+export function fatorReal(
+  fatorAplicacao: number,
+  fatorReferencia: number,
+): number {
+  const real = fatorAplicacao / fatorReferencia;
+  return real;
+}

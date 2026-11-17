@@ -1,7 +1,13 @@
 // imports do bcb.ts
 import { dadosExtraidos } from "./bcb.ts";
 // imports do calculos.ts
-import { taxasParaFator, fatorParaTaxa, aplicarFator, ganhoSobreReferencia } from "./calculos.ts";
+import {
+  taxasParaFator,
+  fatorParaTaxa,
+  aplicarFator,
+  ganhoSobreReferencia,
+  fatorReal,
+} from "./calculos.ts";
 
 async function processarInput(valor: number, tempo: number): Promise<number> {
   const codIpca = 433;
@@ -13,39 +19,41 @@ async function processarInput(valor: number, tempo: number): Promise<number> {
     const ipcaMensal = await dadosExtraidos(codIpca, tempo); // Vetor de números extraidos do BACEN
     const fatorAcumuladoIpca = taxasParaFator(ipcaMensal); // Multiplicacao acumulada de valores do periodo
     const taxaPeriodoIpca = fatorParaTaxa(fatorAcumuladoIpca); // Transforma fator em taxa
-    const taxaIpca = taxaPeriodoIpca.toFixed(2); // Arredonda exibição das casas.
 
     // POUPANÇA
 
     const poupMensal = await dadosExtraidos(codPoup, tempo);
     const fatorAcumuladoPoup = taxasParaFator(poupMensal);
     const taxaPeriodoPoup = fatorParaTaxa(fatorAcumuladoPoup);
-    const taxaPoup = taxaPeriodoPoup.toFixed(2);
 
-    const performanceInflacao = aplicarFator(valor, fatorAcumuladoIpca);
-    // const performanceBruta =
-    //   transformarValor(valor, fatorAcumuladoPoup) - valor;
-    // const performanceReal =
-    //   transformarValor(valor, fatorAcumuladoPoup) - performanceInflacao;
-    const performanceBruta =
-      ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1);
-    const performanceReal =
-      ganhoSobreReferencia(valor, fatorAcumuladoPoup, fatorAcumuladoIpca);
-
-    console.log(
-      taxaIpca,
-      taxaPoup,
-      performanceInflacao,
-      performanceBruta,
-      performanceReal,
+    const montanteSobInflacaoPeriodo = aplicarFator(valor, fatorAcumuladoIpca);
+    const ganhoBruto = ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1);
+    const ganhoReal = ganhoSobreReferencia(
+      valor,
+      fatorAcumuladoPoup,
+      fatorAcumuladoIpca,
     );
+    const fatorRealPoup = fatorReal(fatorAcumuladoPoup, fatorAcumuladoIpca);
+    const taxaRealPoup = fatorParaTaxa(fatorRealPoup);
+
+    console.log(`
+      Inflação do período: ${taxaPeriodoIpca.toFixed(2)}% \n
+      Poupança rendeu: ${taxaPeriodoPoup.toFixed(2)}% \n
+      R$${valor} equivale a R$${montanteSobInflacaoPeriodo.toFixed(2)} hoje \n
+      R$${valor} obteve rendimento bruto de: R$${ganhoBruto.toFixed(2)} \n
+      R$${valor} obteve rendimento real: R$${ganhoReal.toFixed(2)} \n
+      Taxa real da aplicação: ${taxaRealPoup.toFixed(2)}%
+      `);
   } catch (e) {
     console.log(e);
+    return 1;
   }
 
-  return 1;
+  // ### TODO ###
+  // - O return 0 e 1 (catch) é uma solução provisória para garantir que a função retorne um número
+  // Ao finalizar todo o main.ts, saberei o que dar de retorno nela, que eu ainda não visualizei
+
+  return 0;
 }
 
 processarInput(1000, 6);
-
-// Imports das funções, chamam em um try-catch, e dá console.log
