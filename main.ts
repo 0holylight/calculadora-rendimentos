@@ -1,5 +1,6 @@
 // imports do bcb.ts
-import { dadosExtraidos } from "./bcb.ts";
+import { taxasMensais, ultimoMes } from "./bcb.ts";
+import { formatarMes, inicioDaJanela } from "./datas.ts";
 // imports do calculos.ts
 import {
   taxasParaFator,
@@ -9,20 +10,25 @@ import {
   fatorReal,
 } from "./calculos.ts";
 
-async function processarInput(valor: number, tempo: number): Promise<number> {
+async function processarInput(valor: number, meses: number): Promise<number> {
   const codIpca = 433;
   const codPoup = 196;
 
   try {
+    // JANELA: o IPCA sai com atraso, então o último mês dele define o fim do período das duas séries
+
+    const fim = await ultimoMes(codIpca);
+    const inicio = inicioDaJanela(fim, meses);
+
     // IPCA
 
-    const ipcaMensal = await dadosExtraidos(codIpca, tempo); // Vetor de números extraidos do BACEN
+    const ipcaMensal = await taxasMensais(codIpca, inicio, fim); // Vetor de números extraidos do BACEN
     const fatorAcumuladoIpca = taxasParaFator(ipcaMensal); // Multiplicacao acumulada de valores do periodo
     const taxaPeriodoIpca = fatorParaTaxa(fatorAcumuladoIpca); // Transforma fator em taxa
 
     // POUPANÇA
 
-    const poupMensal = await dadosExtraidos(codPoup, tempo);
+    const poupMensal = await taxasMensais(codPoup, inicio, fim);
     const fatorAcumuladoPoup = taxasParaFator(poupMensal);
     const taxaPeriodoPoup = fatorParaTaxa(fatorAcumuladoPoup);
 
@@ -37,6 +43,7 @@ async function processarInput(valor: number, tempo: number): Promise<number> {
     const taxaRealPoup = fatorParaTaxa(fatorRealPoup);
 
     console.log(`
+      Período: ${formatarMes(inicio)} a ${formatarMes(fim)} (último IPCA disponível) \n
       Inflação do período: ${taxaPeriodoIpca.toFixed(2)}% \n
       Poupança rendeu: ${taxaPeriodoPoup.toFixed(2)}% \n
       R$${valor} equivale a R$${montanteSobInflacaoPeriodo.toFixed(2)} hoje \n
@@ -56,4 +63,4 @@ async function processarInput(valor: number, tempo: number): Promise<number> {
   return 0;
 }
 
-processarInput(1000, 6);
+processarInput(1000, 12);
