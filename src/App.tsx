@@ -450,8 +450,8 @@ function Resumo({
 }
 
 // Os dois jeitos de compartilhar: o link (refaz a simulação) e a imagem (resumo pronto para mandar).
-// No celular (tela de toque), os dois abrem o menu de compartilhar do sistema (WhatsApp etc.);
-// no computador, o link vai para a área de transferência e a imagem é baixada.
+// O link é sempre copiado (só o endereço). A imagem, no celular (tela de toque), abre o menu de
+// compartilhar do sistema (WhatsApp etc.); no computador, é baixada.
 function Compartilhar({ simulacao }: { simulacao: Simulacao }) {
   const [aviso, setAviso] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
@@ -467,18 +467,12 @@ function Compartilhar({ simulacao }: { simulacao: Simulacao }) {
     return `${window.location.origin}${window.location.pathname}?${pedidoParaParametros(simulacao)}`;
   }
 
-  async function compartilharLink() {
-    const url = enderecoDoLink();
+  // Copia só o endereço, sem texto junto, em qualquer aparelho: assim ele pode ser colado direto no navegador
+  async function copiarLink() {
     try {
-      if (celular && "share" in navigator) {
-        await navigator.share({ title: document.title, text: "Veja quanto esse dinheiro rendeu de verdade", url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(enderecoDoLink());
       setAviso("Link copiado!");
-    } catch (e) {
-      // Fechar o menu de compartilhar sem escolher nada não é erro
-      if (e instanceof DOMException && e.name === "AbortError") return;
+    } catch {
       setAviso("Não deu para copiar: use o endereço da barra do navegador.");
     }
   }
@@ -521,8 +515,8 @@ function Compartilhar({ simulacao }: { simulacao: Simulacao }) {
       >
         {gerando ? "Gerando…" : celular ? "Compartilhar imagem" : "Baixar imagem"}
       </button>
-      <button type="button" className="botao-secundario" onClick={() => void compartilharLink()}>
-        {celular ? "Compartilhar link" : "Copiar link"}
+      <button type="button" className="botao-secundario" onClick={() => void copiarLink()}>
+        Copiar link
       </button>
     </div>
   );
