@@ -548,6 +548,120 @@ body {
   color: var(--negativo);
 }
 
+/* ---------- Luz que segue o cursor + onda no clique (inspirado no Magic Bento, React Bits) ---------- */
+
+/* Registrar as variáveis deixa o CSS animar a transição delas (acender e apagar suave) */
+@property --luz-perto {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --luz-dentro {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+[data-luz] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    --luz-perto 0.4s ease-out,
+    --luz-dentro 0.4s ease-out;
+}
+
+/* Camada 1: holofote, um brilho suave dentro do painel, embaixo do conteúdo */
+[data-luz]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    340px circle at var(--luz-x, -999px) var(--luz-y, -999px),
+    rgba(95, 211, 148, calc(0.027 * var(--luz-dentro))),
+    rgba(95, 211, 148, calc(0.01 * var(--luz-dentro))) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Camada 2: a mesma luz, mas recortada (mask) para aparecer só no anel de 1px da borda.
+   Acende já quando o cursor se aproxima, antes de entrar no painel. */
+[data-luz]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(
+    280px circle at var(--luz-x, -999px) var(--luz-y, -999px),
+    rgba(190, 240, 205, calc(0.6 * var(--luz-perto))),
+    rgba(95, 211, 148, calc(0.28 * var(--luz-perto))) 35%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* Tilt: inclinação 3D que segue o cursor, só em quem tem data-tilt (hoje, o card da poupança) */
+@property --tilt-x {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --tilt-y {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+[data-tilt] {
+  transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition:
+    --luz-perto 0.4s ease-out,
+    --luz-dentro 0.4s ease-out,
+    --tilt-x 0.35s ease-out,
+    --tilt-y 0.35s ease-out;
+  will-change: transform;
+}
+
+/* Camada 3: a onda do clique, um anel que nasce no ponto clicado e se espalha até as bordas */
+.onda {
+  position: absolute;
+  z-index: 1;
+  width: var(--onda-tamanho);
+  height: var(--onda-tamanho);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 58%,
+    rgba(95, 211, 148, 0.08) 64%,
+    rgba(190, 240, 205, 0.28) 69%,
+    transparent 71%
+  );
+  transform: translate(-50%, -50%) scale(0);
+  animation: onda 1s cubic-bezier(0.25, 0.8, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes onda {
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
 /* ---------- Rodapé ---------- */
 
 .rodape {
@@ -602,15 +716,16 @@ body {
   animation: surgir 0.8s var(--curva) 1.25s both;
 }
 
+/* Usa "translate" (e não "transform") para não brigar com o transform do tilt depois que a animação termina */
 @keyframes surgir {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    translate: 0 18px;
     filter: blur(6px);
   }
   to {
     opacity: 1;
-    transform: none;
+    translate: none;
     filter: blur(0);
   }
 }

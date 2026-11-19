@@ -1,10 +1,11 @@
 // Salão da web: recebe o valor e o prazo pelo formulário, pede a simulação e mostra o resultado (ou o erro).
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import type { IdAplicacao, ResultadoAplicacao, Simulacao } from "./types.ts";
 import { simular } from "./simulacao.ts";
 import { formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
 import { useContagem } from "./useContagem.ts";
+import { useLuzDoCursor } from "./useLuzDoCursor.ts";
 
 type Estado =
   | { tipo: "inicial" }
@@ -26,8 +27,9 @@ export function App() {
   const [mesesDigitados, setMesesDigitados] = useState("12");
   const [estado, setEstado] = useState<Estado>({ tipo: "inicial" });
   const rodada = useRef(0);
+  useLuzDoCursor();
 
-  async function enviar(evento: FormEvent<HTMLFormElement>) {
+  async function enviar(evento: SubmitEvent<HTMLFormElement>) {
     evento.preventDefault();
     setEstado({ tipo: "carregando" });
 
@@ -68,7 +70,7 @@ export function App() {
           </p>
         </header>
 
-        <form className="frase" onSubmit={enviar}>
+        <form className="frase" data-luz onSubmit={enviar}>
           <p className="frase-texto">
             Se eu tivesse aplicado{" "}
             <label className="campo-inline">
@@ -209,7 +211,12 @@ function CardAplicacao({
   const taxaReal = useContagem(0, aplicacao.taxaReal, 1400, 1300);
 
   return (
-    <article className="card revelar" data-sinal={ganhou ? "positivo" : "negativo"}>
+    <article
+      className="card revelar"
+      data-luz
+      data-tilt={aplicacao.id === "poupanca" || undefined}
+      data-sinal={ganhou ? "positivo" : "negativo"}
+    >
       <header className="card-topo">
         <h3>{aplicacao.nome}</h3>
         <p>{texto.descricao}</p>
