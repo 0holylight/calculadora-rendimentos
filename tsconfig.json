@@ -1,13 +1,14 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // Ambiente: TypeScript rodando direto no Node 24
+    // Ambiente: o mesmo código roda no Node 24 (terminal.ts) e no navegador (Vite + React)
     "module": "nodenext",
     "target": "esnext",
-    "lib": ["esnext"],
-    "types": ["node"],
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
 
-    // Só confere os tipos. Quem roda é o Node, que apaga os tipos sozinho.
+    // Só confere os tipos. Quem roda é o Node ou o Vite, que apagam os tipos sozinhos.
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,

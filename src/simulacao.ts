@@ -34,20 +34,28 @@ export async function simular(valor: number, meses: number): Promise<Simulacao> 
   const fatorAcumuladoIpca = taxasParaFator(ipcaMensal);
   const fatorAcumuladoPoup = taxasParaFator(poupMensal);
 
+  const ganhoBrutoPoup = ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1);
+
   const poupanca: ResultadoAplicacao = {
+    id: "poupanca",
     nome: "Poupança",
     taxaBruta: fatorParaTaxa(fatorAcumuladoPoup),
-    ganhoBruto: ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1),
+    ganhoBruto: ganhoBrutoPoup,
+    impostos: 0, // isenta de IR para pessoa física e sem taxas
+    ganhoLiquido: ganhoBrutoPoup, // sem impostos, líquido = bruto
+    valorFinal: aplicarFator(valor, fatorAcumuladoPoup),
     ganhoReal: ganhoSobreReferencia(valor, fatorAcumuladoPoup, fatorAcumuladoIpca),
     taxaReal: fatorParaTaxa(fatorReal(fatorAcumuladoPoup, fatorAcumuladoIpca)),
   };
 
   return {
     valor,
+    meses,
     inicio,
     fim,
     taxaInflacao: fatorParaTaxa(fatorAcumuladoIpca),
     montanteSobInflacao: aplicarFator(valor, fatorAcumuladoIpca),
+    correcaoInflacao: ganhoSobreReferencia(valor, fatorAcumuladoIpca, 1),
     aplicacoes: [poupanca],
   };
 }
