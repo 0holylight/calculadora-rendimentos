@@ -8,6 +8,10 @@ import { useContagem } from "./useContagem.ts";
 import { useLuzDoCursor } from "./useLuzDoCursor.ts";
 import { GraficoGanhoReal } from "./Grafico.tsx";
 import { ErroBancoCentral, ErroPedido } from "./erros.ts";
+import { custoDaPoupanca } from "./comparacao.ts";
+import { desenharImagem } from "./imagem.ts";
+import type { Campos } from "./link.ts";
+import { camposPadrao, camposParaPedido, parametrosParaCampos, pedidoParaParametros } from "./link.ts";
 
 type Estado =
   | { tipo: "inicial" }
@@ -117,34 +121,53 @@ function CampoInline({
 }
 
 export function App() {
-  const [valorDigitado, setValorDigitado] = useState("1000");
-  const [mesesDigitados, setMesesDigitados] = useState("12");
-  const [aporteDigitado, setAporteDigitado] = useState("0");
-  const [cdbDigitado, setCdbDigitado] = useState("100");
-  const [lciDigitado, setLciDigitado] = useState("90");
+  // Se a página foi aberta por um link compartilhado (?valor=...&meses=...), o formulário começa preenchido
+  const [doLink] = useState(() => parametrosParaCampos(new URLSearchParams(window.location.search)));
+  const inicial = doLink ?? camposPadrao;
+  const [valorDigitado, setValorDigitado] = useState(inicial.valor);
+  const [mesesDigitados, setMesesDigitados] = useState(inicial.meses);
+  const [aporteDigitado, setAporteDigitado] = useState(inicial.aporte);
+  const [cdbDigitado, setCdbDigitado] = useState(inicial.cdb);
+  const [lciDigitado, setLciDigitado] = useState(inicial.lci);
   const [estado, setEstado] = useState<Estado>({ tipo: "inicial" });
   const rodada = useRef(0);
   useLuzDoCursor();
 
-  async function enviar(evento: SubmitEvent<HTMLFormElement>) {
-    evento.preventDefault();
+  async function executar(campos: Campos) {
     setEstado({ tipo: "carregando" });
 
     try {
-      const simulacao = await simular({
-        valor: Number(valorDigitado),
-        meses: Number(mesesDigitados),
-        aporteMensal: Number(aporteDigitado),
-        percentualCdb: Number(cdbDigitado),
-        percentualLciLca: Number(lciDigitado),
-      });
+      const simulacao = await simular(camposParaPedido(campos));
       rodada.current += 1;
       setEstado({ tipo: "pronto", simulacao, rodada: rodada.current });
+      // O endereço passa a descrever esta simulação (sem recarregar a página): é ele que vira o link
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}?${pedidoParaParametros(simulacao)}`,
+      );
     } catch (e) {
       console.error(e);
       setEstado({ tipo: "erro", ...explicarErro(e) });
     }
   }
+
+  function enviar(evento: SubmitEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    void executar({
+      valor: valorDigitado,
+      meses: mesesDigitados,
+      aporte: aporteDigitado,
+      cdb: cdbDigitado,
+      lci: lciDigitado,
+    });
+  }
+
+  // Link compartilhado: já abre com a simulação feita
+  useEffect(() => {
+    if (doLink !== null) void executar(doLink);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só uma vez, ao abrir a página
+  }, []);
 
   return (
     <>
@@ -343,9 +366,12 @@ function Resumo({
 
   return (
     <header className="resumo revelar">
-      <p className="sobretitulo">
-        De {inicio} a {fim}
-      </p>
+      <div className="resumo-topo">
+        <p className="sobretitulo">
+          De {inicio} a {fim}
+        </p>
+        <Compartilhar simulacao={simulacao} />
+      </div>
       <h2 className="resumo-titulo">
         <strong>{formatarReais(simulacao.valor)}</strong>
         {comAportes && (
@@ -423,6 +449,85 @@ function Resumo({
   );
 }
 
+// Os dois jeitos de compartilhar: o link (refaz a simulação) e a imagem (resumo pronto para mandar).
+// No celular (tela de toque), os dois abrem o menu de compartilhar do sistema (WhatsApp etc.);
+// no computador, o link vai para a área de transferência e a imagem é baixada.
+function Compartilhar({ simulacao }: { simulacao: Simulacao }) {
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+  const celular = window.matchMedia("(pointer: coarse)").matches;
+
+  useEffect(() => {
+    if (aviso === null) return;
+    const espera = window.setTimeout(() => setAviso(null), 2500);
+    return () => window.clearTimeout(espera);
+  }, [aviso]);
+
+  function enderecoDoLink(): string {
+    return `${window.location.origin}${window.location.pathname}?${pedidoParaParametros(simulacao)}`;
+  }
+
+  async function compartilharLink() {
+    const url = enderecoDoLink();
+    try {
+      if (celular && "share" in navigator) {
+        await navigator.share({ title: document.title, text: "Veja quanto esse dinheiro rendeu de verdade", url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setAviso("Link copiado!");
+    } catch (e) {
+      // Fechar o menu de compartilhar sem escolher nada não é erro
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setAviso("Não deu para copiar: use o endereço da barra do navegador.");
+    }
+  }
+
+  async function compartilharImagem() {
+    setGerando(true);
+    try {
+      const imagem = await desenharImagem(simulacao);
+      const arquivo = new File([imagem], "simulacao-rendimentos.png", { type: "image/png" });
+      if (celular && navigator.canShare?.({ files: [arquivo] })) {
+        await navigator.share({ files: [arquivo], text: enderecoDoLink() });
+        return;
+      }
+      const url = URL.createObjectURL(imagem);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = arquivo.name;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setAviso("Imagem baixada!");
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      console.error(e);
+      setAviso("Não deu para gerar a imagem.");
+    } finally {
+      setGerando(false);
+    }
+  }
+
+  return (
+    <div className="compartilhar">
+      <span className="compartilhar-aviso" role="status">
+        {aviso}
+      </span>
+      <button
+        type="button"
+        className="botao-secundario"
+        disabled={gerando}
+        onClick={() => void compartilharImagem()}
+      >
+        {gerando ? "Gerando…" : celular ? "Compartilhar imagem" : "Baixar imagem"}
+      </button>
+      <button type="button" className="botao-secundario" onClick={() => void compartilharLink()}>
+        {celular ? "Compartilhar link" : "Copiar link"}
+      </button>
+    </div>
+  );
+}
+
 // Compara a aplicação da aba com a poupança. Na aba da poupança, compara com a melhor alternativa
 // que poderia ser sacada inteira no fim (sem carência): é o "custo de deixar na poupança".
 function ComparacaoComPoupanca({
@@ -438,12 +543,8 @@ function ComparacaoComPoupanca({
   if (poupanca === undefined) return null;
 
   if (ativa === "poupanca") {
-    const [melhor] = aplicacoes
-      .filter((aplicacao) => aplicacao.id !== "poupanca" && aplicacao.emCarencia === 0)
-      .toSorted((a, b) => b.valorFinal - a.valorFinal);
-    const diferenca = melhor === undefined ? 0 : melhor.valorFinal - poupanca.valorFinal;
-
-    if (melhor === undefined || diferenca < 0.005) {
+    const custo = custoDaPoupanca(aplicacoes);
+    if (custo === null) {
       return (
         <div className="numero" data-tom="neutro">
           <p className="numero-rotulo">Poupança</p>
@@ -452,6 +553,7 @@ function ComparacaoComPoupanca({
         </div>
       );
     }
+    const { melhor, diferenca } = custo;
     return (
       <div className="numero" data-tom="custo">
         <p className="numero-rotulo">O custo de deixar na poupança</p>

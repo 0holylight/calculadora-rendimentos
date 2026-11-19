@@ -1262,6 +1262,61 @@ body {
   scroll-margin-top: 16px;
 }
 
+.resumo-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.resumo-topo .sobretitulo {
+  margin: 0;
+}
+
+.compartilhar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.compartilhar-aviso {
+  color: var(--esmeralda-claro);
+  font-size: 0.8rem;
+}
+
+.botao-secundario {
+  padding: 7px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--painel);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+}
+
+.botao-secundario:hover {
+  border-color: var(--esmeralda);
+  background: rgba(95, 211, 148, 0.1);
+}
+
+.botao-secundario:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.botao-secundario:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
+}
+
 .resumo-titulo {
   margin: 0 0 14px;
   font-family: var(--serifa);

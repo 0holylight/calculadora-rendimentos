@@ -15,6 +15,8 @@ Você informa um valor, um prazo e, se quiser, um depósito mensal. O app simula
 
 - **A escada de cada aplicação:** total investido → + rendimento bruto → − impostos e taxas → − inflação → **ganho real**.
 - **O custo de deixar na poupança:** quanto você teria a mais na melhor alternativa.
+- **Link compartilhável:** o endereço guarda a simulação (`?valor=500&meses=12&aporte=200&cdb=110`). Quem abre o link vê a mesma simulação, refeita com os dados mais recentes do Banco Central.
+- **Imagem para compartilhar:** um resumo em 1080×1350 (custo de deixar na poupança e rendimento real de cada aplicação), desenhado no navegador com `<canvas>`. No celular, vai direto para o menu de compartilhar; no computador, é baixado como PNG.
 - **Ganho real mês a mês:** um gráfico de quanto cada aplicação estaria acima da inflação se você resgatasse em cada mês.
 
 ## De onde vêm os números
