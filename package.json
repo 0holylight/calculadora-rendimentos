@@ -7,7 +7,10 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "terminal": "node src/terminal.ts"
+    "terminal": "node src/terminal.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "conferir": "node scripts/conferir.ts"
   },
   "repository": {
     "type": "git",
@@ -27,7 +30,8 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
   },
   "dependencies": {
     "react": "^19.3.1",

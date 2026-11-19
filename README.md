@@ -37,6 +37,10 @@ As regras fixas ficam no código:
 
 O **rendimento real** usa a equação de Fisher: `(1 + rendimento líquido) / (1 + inflação) − 1`. Cada depósito é corrigido pelo IPCA a partir do mês em que entrou.
 
+## Conferência
+
+Além dos testes, `npm run conferir` compara o app com gabaritos oficiais do Banco Central: o IPCA acumulado em 12 meses (série 13522) e o CDI e a Selic de cada mês (séries 4391 e 4390). Em janelas de 1, 3 e 10 anos, a diferença fica abaixo de 0,04 ponto percentual. Ela vem só do arredondamento das séries mensais, que têm 2 casas decimais.
+
 ## Simplificações
 
 - Todos os depósitos entram no dia 1º do mês, e o resgate é no dia 1º do mês seguinte ao último IPCA divulgado.
@@ -56,6 +60,8 @@ npm install
 npm run dev        # página em http://localhost:5173
 npm run terminal -- 1000 12 0 100 90   # versão de terminal: valor, meses, depósito mensal, % CDI do CDB, % CDI da LCI/LCA
 npm run typecheck  # conferência de tipos
+npm test           # testes das contas, das datas e da busca (Banco Central simulado, sem internet)
+npm run conferir   # compara o app com séries oficiais já acumuladas do Banco Central (usa a internet)
 npm run build      # gera o site em dist/
 ```
 

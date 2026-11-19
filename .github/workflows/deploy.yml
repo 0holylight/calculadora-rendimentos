@@ -26,6 +26,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Testes das contas: se algum falhar, o site não é publicado
+      - run: npm test
       # tsc --noEmit + vite build: se os tipos quebrarem, o site não é publicado
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
