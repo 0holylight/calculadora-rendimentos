@@ -122,7 +122,11 @@ export function GraficoGanhoReal({
       <header className="grafico-topo">
         <div>
           <h3 id="grafico-titulo">Ganho real mês a mês</h3>
-          <p>Se você sacasse em cada mês, já com impostos. Abaixo do zero, perdeu da inflação.</p>
+          <p>
+            {simulacao.premissas === null
+              ? "Se você sacasse em cada mês, já com impostos. Abaixo do zero, perdeu da inflação."
+              : "Se você sacar em cada mês, já com impostos (projeção). Abaixo do zero, perde da inflação."}
+          </p>
         </div>
         <ul className="grafico-legenda" aria-label="Escolha a aplicação em destaque">
           {series.map((serie) => (

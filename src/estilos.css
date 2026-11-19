@@ -117,8 +117,24 @@ body {
 
 .modo {
   padding: 6px 14px;
+  border: 0;
   border-radius: 999px;
-  color: var(--texto-fraco);
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    color 0.25s;
+}
+
+.modo:hover {
+  color: var(--texto);
+}
+
+.modo:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
 }
 
 .modo small {
@@ -1366,6 +1382,81 @@ body {
   white-space: nowrap;
 }
 
+/* Título do resultado; na projeção, divide a linha com o quadro das premissas */
+.resumo-cabeca {
+  display: grid;
+  gap: 12px 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.resumo-cabeca-dupla {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.resumo-cabeca .resumo-titulo {
+  margin: 0;
+}
+
+.premissas {
+  padding: 10px 16px 12px;
+  border: 1px solid rgba(95, 211, 148, 0.3);
+  border-radius: 16px;
+  background-color: rgba(95, 211, 148, 0.07);
+}
+
+.premissas-rotulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  margin: 0 0 6px;
+  color: var(--esmeralda-claro);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.premissas-rotulo span {
+  color: var(--texto-fraco);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.premissas-dados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin: 0;
+}
+
+.premissas-dados div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.premissas-dados dt {
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+}
+
+.premissas-dados dd {
+  margin: 0;
+  color: var(--texto);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.premissas-dados small {
+  color: var(--texto-fraco);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
 .resumo-numeros {
   display: grid;
   grid-template-columns: 1.25fr 1fr 1fr;
@@ -1512,6 +1603,10 @@ body {
 
   .resumo-numeros {
     grid-template-columns: 1fr;
+  }
+
+  .resumo-cabeca-dupla {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .carrossel-controles {

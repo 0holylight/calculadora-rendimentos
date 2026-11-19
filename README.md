@@ -2,7 +2,12 @@
 
 **Quanto o meu dinheiro rende de verdade?**
 
-Você informa um valor, um prazo e, se quiser, um depósito mensal. O app simula esse período **no passado recente**, com os números oficiais do Banco Central, e compara quatro aplicações já descontando impostos, taxas e inflação:
+Você informa um valor, um prazo e, se quiser, um depósito mensal. O app compara quatro aplicações já descontando impostos, taxas e inflação, em dois modos:
+
+- **Olhando para trás:** simula o período **no passado recente**, com os números oficiais do Banco Central.
+- **Projeção futura:** projeta os próximos meses (até 5 anos) com as **expectativas do mercado** do Boletim Focus, também do Banco Central.
+
+As aplicações comparadas:
 
 - **Poupança**
 - **CDB** (percentual do CDI ajustável)
@@ -30,6 +35,8 @@ Dados do [Sistema Gerenciador de Séries Temporais (SGS)](https://www3.bcb.gov.b
 | Poupança (rentabilidade, aniversário no dia 1º) | 196 |
 | CDI diário | 12 |
 | Selic diária | 11 |
+
+Na projeção, as expectativas vêm da [API de Expectativas (Olinda)](https://olinda.bcb.gov.br/olinda/servico/Expectativas/versao/v1/aplicacao) do Banco Central: a mediana da Selic e do IPCA para cada ano e do IPCA para cada mês. A meta da Selic de hoje vem da série 432, e a TR da série 7811. A Selic segue em linha reta até a expectativa de fim de cada ano, e o CDI fica 0,10 ponto abaixo dela.
 
 As regras fixas ficam no código:
 

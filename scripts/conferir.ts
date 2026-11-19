@@ -16,6 +16,7 @@ function tolerancia(meses: number): number {
 
 async function conferirJanela(meses: number): Promise<Conferencia[]> {
   const simulacao = await simular({
+    modo: "historico",
     valor: 1000,
     meses,
     aporteMensal: 0,

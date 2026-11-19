@@ -1,5 +1,6 @@
 // Salão do terminal: pede a simulação, exibe com toFixed e trata o erro.
-// Uso: npm run terminal -- [valor] [meses] [aporteMensal] [% CDI do CDB] [% CDI da LCI/LCA]   (padrão: 1000 12 0 100 90)
+// Uso: npm run terminal -- [valor] [meses] [aporteMensal] [% CDI do CDB] [% CDI da LCI/LCA] [historico|projecao]
+// (padrão: 1000 12 0 100 90 historico)
 import type { Pedido } from "./types.ts";
 import { simular } from "./simulacao.ts";
 import { formatarMes } from "./datas.ts";
@@ -9,7 +10,11 @@ async function exibirNoTerminal(pedido: Pedido): Promise<void> {
     const simulacao = await simular(pedido);
 
     console.log(`
-      Período: ${formatarMes(simulacao.inicio)} a ${formatarMes(simulacao.fim)} (último IPCA disponível)
+      ${simulacao.premissas === null ? "Período" : "Projeção"}: ${formatarMes(simulacao.inicio)} a ${formatarMes(simulacao.fim)}${
+        simulacao.premissas === null
+          ? " (último IPCA disponível)"
+          : ` (Focus de ${simulacao.premissas.boletim}: Selic ${simulacao.premissas.selicInicial.toFixed(2)}% → ${simulacao.premissas.selicFinal.toFixed(2)}%, IPCA ${simulacao.premissas.ipcaAnual.toFixed(2)}% a.a.)`
+      }
       Aplicado: R$${simulacao.valor} + R$${simulacao.aporteMensal}/mês = R$${simulacao.totalAplicado.toFixed(2)}
       Inflação do período: ${simulacao.taxaInflacao.toFixed(2)}%
       Para manter o poder de compra, precisaria chegar a R$${simulacao.montanteSobInflacao.toFixed(2)}
@@ -31,8 +36,10 @@ async function exibirNoTerminal(pedido: Pedido): Promise<void> {
   }
 }
 
-const [valor = "1000", meses = "12", aporte = "0", cdb = "100", lci = "90"] = process.argv.slice(2);
+const [valor = "1000", meses = "12", aporte = "0", cdb = "100", lci = "90", modo = "historico"] =
+  process.argv.slice(2);
 exibirNoTerminal({
+  modo: modo === "projecao" ? "projecao" : "historico",
   valor: Number(valor),
   meses: Number(meses),
   aporteMensal: Number(aporte),

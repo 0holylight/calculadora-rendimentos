@@ -56,3 +56,9 @@ const reaisInteiros = new Intl.NumberFormat("pt-BR", {
 export function formatarReaisEixo(valor: number, compacto: boolean): string {
   return compacto ? reaisCompacto.format(valor) : reaisInteiros.format(valor);
 }
+
+// "2026-11-13" (como a API Olinda manda) vira "13/11/2026"
+export function formatarDataIso(data: string): string {
+  const [ano, mes, dia] = data.split("-");
+  return ano !== undefined && mes !== undefined && dia !== undefined ? `${dia}/${mes}/${ano}` : data;
+}

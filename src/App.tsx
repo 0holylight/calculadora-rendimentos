@@ -1,9 +1,9 @@
 // Salão da web: recebe o pedido pelo formulário, pede a simulação e mostra o resultado (ou o erro).
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, SubmitEvent, TouchEvent } from "react";
-import type { IdAplicacao, ResultadoAplicacao, Simulacao } from "./types.ts";
-import { mesesMaximo, percentualMaximo, simular } from "./simulacao.ts";
-import { formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
+import type { IdAplicacao, Modo, ResultadoAplicacao, Simulacao } from "./types.ts";
+import { mesesMaximo, mesesMaximoProjecao, percentualMaximo, simular } from "./simulacao.ts";
+import { formatarDataIso, formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
 import { useContagem } from "./useContagem.ts";
 import { useLuzDoCursor } from "./useLuzDoCursor.ts";
 import { GraficoGanhoReal } from "./Grafico.tsx";
@@ -131,6 +131,8 @@ export function App() {
   const [aporteDigitado, setAporteDigitado] = useState(inicial.aporte);
   const [cdbDigitado, setCdbDigitado] = useState(inicial.cdb);
   const [lciDigitado, setLciDigitado] = useState(inicial.lci);
+  const [modo, setModo] = useState<Modo>(inicial.modo);
+  const futuro = modo === "projecao";
   const [estado, setEstado] = useState<Estado>({ tipo: "inicial" });
   const rodada = useRef(0);
   useLuzDoCursor();
@@ -154,15 +156,27 @@ export function App() {
     }
   }
 
-  function enviar(evento: SubmitEvent<HTMLFormElement>) {
-    evento.preventDefault();
-    void executar({
+  function camposAtuais(modoEscolhido: Modo): Campos {
+    return {
+      modo: modoEscolhido,
       valor: valorDigitado,
       meses: mesesDigitados,
       aporte: aporteDigitado,
       cdb: cdbDigitado,
       lci: lciDigitado,
-    });
+    };
+  }
+
+  function enviar(evento: SubmitEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    void executar(camposAtuais(modo));
+  }
+
+  // Trocar de modo com um resultado na tela já refaz a simulação no outro modo
+  function trocarModo(novo: Modo) {
+    if (novo === modo) return;
+    setModo(novo);
+    if (estado.tipo === "pronto" || estado.tipo === "erro") void executar(camposAtuais(novo));
   }
 
   // Link compartilhado: já abre com a simulação feita
@@ -181,26 +195,38 @@ export function App() {
 
       <main className="pagina">
         <header className="cabecalho">
-          <div className="modos">
-            <span className="modo modo-ativo">Olhando para trás</span>
-            <span className="modo" aria-disabled="true">
-              Projeção futura <small>em breve</small>
-            </span>
+          <div className="modos" role="group" aria-label="Tipo de simulação">
+            <button
+              type="button"
+              className={`modo${futuro ? "" : " modo-ativo"}`}
+              aria-pressed={!futuro}
+              onClick={() => trocarModo("historico")}
+            >
+              Olhando para trás
+            </button>
+            <button
+              type="button"
+              className={`modo${futuro ? " modo-ativo" : ""}`}
+              aria-pressed={futuro}
+              onClick={() => trocarModo("projecao")}
+            >
+              Projeção futura
+            </button>
           </div>
 
           <h1>
             Quanto meu dinheiro rende <em>de verdade?</em>
           </h1>
           <p className="cabecalho-texto">
-            Escolha um valor, um prazo e, se quiser, um depósito mensal. Com os dados oficiais do
-            Banco Central, a gente compara poupança, CDB, LCI/LCA e Tesouro Selic no passado recente
-            e mostra quanto foi ganho de verdade, depois de descontar impostos, taxas e inflação.
+            {futuro
+              ? "Escolha um valor, um prazo e, se quiser, um depósito mensal. Com as expectativas do mercado (Boletim Focus, do Banco Central), a gente projeta quanto poupança, CDB, LCI/LCA e Tesouro Selic devem render daqui para a frente, depois de descontar impostos, taxas e inflação."
+              : "Escolha um valor, um prazo e, se quiser, um depósito mensal. Com os dados oficiais do Banco Central, a gente compara poupança, CDB, LCI/LCA e Tesouro Selic no passado recente e mostra quanto foi ganho de verdade, depois de descontar impostos, taxas e inflação."}
           </p>
         </header>
 
         <form className="frase" data-luz onSubmit={enviar}>
           <p className="frase-texto">
-            Se eu tivesse aplicado{" "}
+            {futuro ? "Se eu aplicar" : "Se eu tivesse aplicado"}{" "}
             <CampoInline
               rotulo="Valor investido em reais"
               prefixo="R$"
@@ -209,13 +235,13 @@ export function App() {
               min={0.01}
               step={0.01}
             />{" "}
-            há{" "}
+            {futuro ? "hoje, por" : "há"}{" "}
             <CampoInline
               rotulo="Prazo em meses"
               valor={mesesDigitados}
               aoMudar={setMesesDigitados}
               min={1}
-              max={mesesMaximo}
+              max={futuro ? mesesMaximoProjecao : mesesMaximo}
               step={1}
               inteiro
             />{" "}
@@ -232,7 +258,11 @@ export function App() {
           </p>
 
           <button type="submit" disabled={estado.tipo === "carregando"}>
-            {estado.tipo === "carregando" ? "Consultando…" : "Ver quanto teria rendido"}
+            {estado.tipo === "carregando"
+              ? "Consultando…"
+              : futuro
+                ? "Ver quanto deve render"
+                : "Ver quanto teria rendido"}
             <span className="seta" aria-hidden="true">
               →
             </span>
@@ -288,8 +318,8 @@ export function App() {
         <footer className="rodape">
           <p className="rodape-aviso">
             <strong>Ferramenta educativa, não é recomendação de investimento.</strong> Os resultados
-            mostram o passado e servem para comparar opções. Antes de investir, confira as taxas, os
-            prazos e as garantias com o seu banco ou corretora.
+            mostram o passado ou uma estimativa do futuro e servem para comparar opções. Antes de
+            investir, confira as taxas, os prazos e as garantias com o seu banco ou corretora.
           </p>
           <p>
             Fonte: Banco Central do Brasil (SGS), séries 433 (IPCA), 196 (poupança), 12 (CDI) e 11
@@ -299,6 +329,12 @@ export function App() {
             9 meses (270 dias) por depósito; o Tesouro Selic rende a Selic do dia, sem ágio ou
             deságio no preço; a custódia é calculada mês a mês; as regras atuais de IR, IOF, custódia
             e carência valem para o período todo.
+          </p>
+          <p>
+            Na projeção futura: expectativas medianas do Boletim Focus (Banco Central) para a Selic e o
+            IPCA; a Selic segue em linha reta até a expectativa de fim de cada ano; o CDI e a Selic do
+            Tesouro ficam 0,10 ponto abaixo da meta; a TR repete a média dos últimos 12 meses; depois
+            do último ano do Focus, valem as últimas expectativas. É uma estimativa, não uma promessa.
           </p>
         </footer>
       </main>
@@ -402,15 +438,18 @@ function Resumo({
   const fim = formatarMesExtenso(simulacao.fim);
   const prazo = simulacao.meses === 1 ? "1 mês" : `${simulacao.meses} meses`;
   const comAportes = simulacao.aporteMensal > 0 && simulacao.meses > 1;
+  const { premissas } = simulacao;
+  const futuro = premissas !== null;
 
   return (
     <header className="resumo revelar">
       <div className="resumo-topo">
         <p className="sobretitulo">
-          De {inicio} a {fim}
+          {futuro ? "Projeção de" : "De"} {inicio} a {fim}
         </p>
         <Compartilhar simulacao={simulacao} />
       </div>
+      <div className={`resumo-cabeca${futuro ? " resumo-cabeca-dupla" : ""}`}>
       <h2 className="resumo-titulo">
         <strong>{formatarReais(simulacao.valor)}</strong>
         {comAportes && (
@@ -425,6 +464,40 @@ function Resumo({
         )}
       </h2>
 
+      {premissas !== null && (
+        // As hipóteses da projeção ficam ao lado do título, em destaque: sem elas, o número não tem contexto
+        <div className="premissas">
+          <p className="premissas-rotulo">
+            Premissas da projeção
+            <span>
+              Boletim Focus de {formatarDataIso(premissas.boletim)} · estimativa, não promessa
+            </span>
+          </p>
+          <dl className="premissas-dados">
+            <div>
+              <dt>Selic</dt>
+              <dd>
+                {formatarTaxa(premissas.selicInicial)} → {formatarTaxa(premissas.selicFinal)}{" "}
+                <small>ao ano</small>
+              </dd>
+            </div>
+            <div>
+              <dt>Inflação</dt>
+              <dd>
+                {formatarTaxa(premissas.ipcaAnual)} <small>ao ano</small>
+              </dd>
+            </div>
+            <div>
+              <dt>TR</dt>
+              <dd>
+                {formatarTaxa(premissas.trMensal)} <small>ao mês</small>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      )}
+      </div>
+
       <div className="resumo-numeros">
         <ComparacaoComPoupanca
           aplicacoes={simulacao.aplicacoes}
@@ -434,7 +507,7 @@ function Resumo({
 
         <div className="numero">
           <p className="numero-rotulo">
-            Inflação do período
+            {futuro ? "Inflação esperada" : "Inflação do período"}
             <button
               type="button"
               className="ajuda"
@@ -445,23 +518,40 @@ function Resumo({
             </button>
           </p>
           <p className="numero-valor numero-inflacao">{formatarTaxa(simulacao.taxaInflacao)}</p>
-          <p className="numero-texto">o quanto os preços subiram (IPCA)</p>
+          <p className="numero-texto">
+            {futuro ? "o quanto os preços devem subir (IPCA)" : "o quanto os preços subiram (IPCA)"}
+          </p>
         </div>
 
         <div className="numero">
-          <p className="numero-rotulo">Seu dinheiro precisava virar</p>
+          <p className="numero-rotulo">
+            {futuro ? "Seu dinheiro vai precisar virar" : "Seu dinheiro precisava virar"}
+          </p>
           <p className="numero-valor">{formatarReais(simulacao.montanteSobInflacao)}</p>
           <p className="numero-texto">
-            {comAportes
-              ? `Os ${formatarReais(simulacao.totalAplicado)} que você depositou equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`
-              : `${formatarReais(simulacao.valor)} de ${inicio} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`}
+            {futuro
+              ? comAportes
+                ? `Os ${formatarReais(simulacao.totalAplicado)} que você vai depositar equivalerão a ${formatarReais(simulacao.montanteSobInflacao)} em ${fim}.`
+                : `${formatarReais(simulacao.valor)} de hoje equivalerão a ${formatarReais(simulacao.montanteSobInflacao)} em ${fim}.`
+              : comAportes
+                ? `Os ${formatarReais(simulacao.totalAplicado)} que você depositou equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`
+                : `${formatarReais(simulacao.valor)} de ${inicio} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`}
           </p>
         </div>
       </div>
 
       <div id="explica-inflacao" className="explicacao" popover="auto">
-        <p className="explicacao-titulo">Inflação do período: {formatarTaxa(simulacao.taxaInflacao)}</p>
-        {comAportes ? (
+        <p className="explicacao-titulo">
+          {futuro ? "Inflação esperada" : "Inflação do período"}: {formatarTaxa(simulacao.taxaInflacao)}
+        </p>
+        {futuro ? (
+          <p>
+            Pelas expectativas do mercado, os preços devem subir {formatarTaxa(simulacao.taxaInflacao)}{" "}
+            (IPCA) até {fim}. Cada depósito perde poder de compra a partir do mês em que entra. Para
+            comprar em {fim} o mesmo que esse dinheiro compra quando é depositado, você vai precisar de{" "}
+            <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong>.
+          </p>
+        ) : comAportes ? (
           <p>
             Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Você teria
             depositado <strong>{formatarReais(simulacao.totalAplicado)}</strong> ao todo, e cada
@@ -777,7 +867,7 @@ function CardAplicacao({
       </header>
 
       <div className="valor-final">
-        <span className="rotulo">Teria se tornado</span>
+        <span className="rotulo">{simulacao.premissas === null ? "Teria se tornado" : "Deve se tornar"}</span>
         <div className="valor-final-linha">
           <span className="valor-final-numero">{formatarReais(valorFinal)}</span>
           <span
@@ -836,9 +926,13 @@ function CardAplicacao({
           <strong className="real-numero">{formatarTaxa(taxaReal)}</strong>
         </p>
         <p className="real-texto">
-          {ganhou
-            ? `Seu poder de compra cresceu ${formatarTaxa(aplicacao.taxaReal)} além da inflação, já descontados impostos e taxas.`
-            : `Rendeu menos que a inflação: seu poder de compra caiu ${formatarTaxa(Math.abs(aplicacao.taxaReal))}, já descontados impostos e taxas.`}
+          {simulacao.premissas === null
+            ? ganhou
+              ? `Seu poder de compra cresceu ${formatarTaxa(aplicacao.taxaReal)} além da inflação, já descontados impostos e taxas.`
+              : `Rendeu menos que a inflação: seu poder de compra caiu ${formatarTaxa(Math.abs(aplicacao.taxaReal))}, já descontados impostos e taxas.`
+            : ganhou
+              ? `Seu poder de compra deve crescer ${formatarTaxa(aplicacao.taxaReal)} além da inflação, já descontados impostos e taxas.`
+              : `Deve render menos que a inflação: seu poder de compra cairia ${formatarTaxa(Math.abs(aplicacao.taxaReal))}, já descontados impostos e taxas.`}
         </p>
       </div>
     </article>

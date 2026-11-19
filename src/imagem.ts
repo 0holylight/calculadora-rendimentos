@@ -3,7 +3,7 @@
 // em qualquer aparelho, e só com o que importa para quem vê a imagem sem abrir o app.
 import type { Simulacao } from "./types.ts";
 import { custoDaPoupanca } from "./comparacao.ts";
-import { formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
+import { formatarDataIso, formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
 
 const largura = 1080;
 const altura = 1350;
@@ -149,12 +149,21 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
 
   // O pedido e o período
   const comAportes = simulacao.aporteMensal > 0 && simulacao.meses > 1;
+  const { premissas } = simulacao;
+  const futuro = premissas !== null;
   const prazo = simulacao.meses === 1 ? "1 mês" : `${simulacao.meses} meses`;
-  const pedido = comAportes
-    ? `${formatarReais(simulacao.valor)} + ${formatarReais(simulacao.aporteMensal)} por mês, durante ${prazo}`
-    : `${formatarReais(simulacao.valor)} aplicados durante ${prazo}`;
+  const pedido =
+    (comAportes
+      ? `${formatarReais(simulacao.valor)} + ${formatarReais(simulacao.aporteMensal)} por mês, durante ${prazo}`
+      : `${formatarReais(simulacao.valor)} aplicados durante ${prazo}`) + (futuro ? " (projeção)" : "");
   texto(ctx, pedido, margem, 392, caber(ctx, pedido, (px) => `500 ${px}px ${sans}`, 34, util), cor.texto);
-  const periodo = `De ${formatarMesExtenso(simulacao.inicio)} a ${formatarMesExtenso(simulacao.fim)}${comAportes ? ` · ${formatarReais(simulacao.totalAplicado)} investidos` : ""}`;
+  const periodo =
+    `${futuro ? "Projeção de" : "De"} ${formatarMesExtenso(simulacao.inicio)} a ${formatarMesExtenso(simulacao.fim)}` +
+    (premissas !== null
+      ? ` · Boletim Focus de ${formatarDataIso(premissas.boletim)}`
+      : comAportes
+        ? ` · ${formatarReais(simulacao.totalAplicado)} investidos`
+        : "");
   texto(ctx, periodo, margem, 438, caber(ctx, periodo, (px) => `400 ${px}px ${sans}`, 26, util), cor.fraco);
 
   // Destaque: o custo de deixar na poupança
@@ -203,15 +212,20 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
 
   // Inflação em uma linha
   const yInflacao = topoPlacar + 62 + ordenadas.length * 80 + 12;
-  const base = comAportes ? `os ${formatarReais(simulacao.totalAplicado)} depositados` : `${formatarReais(simulacao.valor)} de ${formatarMesExtenso(simulacao.inicio)}`;
-  const inflacao = `Inflação de ${formatarTaxa(simulacao.taxaInflacao)}: ${base} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`;
+  const fim = formatarMesExtenso(simulacao.fim);
+  const inflacao = futuro
+    ? `Inflação esperada de ${formatarTaxa(simulacao.taxaInflacao)}: ${comAportes ? `os ${formatarReais(simulacao.totalAplicado)} depositados` : `${formatarReais(simulacao.valor)} de hoje`} equivalerão a ${formatarReais(simulacao.montanteSobInflacao)} em ${fim}.`
+    : `Inflação de ${formatarTaxa(simulacao.taxaInflacao)}: ${comAportes ? `os ${formatarReais(simulacao.totalAplicado)} depositados` : `${formatarReais(simulacao.valor)} de ${formatarMesExtenso(simulacao.inicio)}`} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`;
   texto(ctx, inflacao, margem, yInflacao, caber(ctx, inflacao, (px) => `400 ${px}px ${sans}`, 26, util), cor.suave);
 
   // Rodapé
   ctx.fillStyle = cor.borda;
   ctx.fillRect(margem, altura - 138, util, 2);
   texto(ctx, `Faça a sua simulação: ${endereco()}`, margem, altura - 84, caber(ctx, `Faça a sua simulação: ${endereco()}`, (px) => `600 ${px}px ${sans}`, 26, util), cor.verde);
-  const aviso = `Dados do Banco Central.${simulacao.aplicacoes.some((a) => a.emCarencia > 0) ? " * parte ainda em carência." : ""} Simulação do passado, não é recomendação.`;
+  const carencia = simulacao.aplicacoes.some((a) => a.emCarencia > 0) ? " * parte ainda em carência." : "";
+  const aviso = futuro
+    ? `Expectativas do Focus (Banco Central).${carencia} Estimativa, não é promessa.`
+    : `Dados do Banco Central.${carencia} Simulação do passado, não é recomendação.`;
   texto(ctx, aviso, margem, altura - 46, caber(ctx, aviso, (px) => `400 ${px}px ${sans}`, 22, util), cor.fraco);
 
   return new Promise((resolver, rejeitar) => {

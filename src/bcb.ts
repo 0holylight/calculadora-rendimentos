@@ -122,6 +122,19 @@ export async function ultimoMes(codigo: number): Promise<AnoMes> {
   return ultima.anoMes;
 }
 
+// O valor mais recente de uma série (ex.: a meta da Selic em vigor, série 432)
+export async function ultimaTaxa(codigo: number): Promise<number> {
+  const leituras = await buscarLeituras(
+    [1, 2, 3].map((n) => `${urlBase}.${codigo}/dados/ultimos/${n}?formato=json`),
+    codigo,
+  );
+  const [ultima] = leituras.toSorted((a, b) => mesesEntre(a.anoMes, b.anoMes));
+  if (ultima === undefined) {
+    throw new ErroBancoCentral(`A série ${codigo} não informou o último valor`);
+  }
+  return ultima.taxa;
+}
+
 export async function taxasMensais(
   codigo: number,
   inicio: AnoMes,

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { camposPadrao, camposParaPedido, parametrosParaCampos, pedidoParaParametros } from "./link.ts";
 
-const pedido = { valor: 500, meses: 12, aporteMensal: 200, percentualCdb: 100, percentualLciLca: 90 };
+const pedido = { modo: "historico" as const, valor: 500, meses: 12, aporteMensal: 200, percentualCdb: 100, percentualLciLca: 90 };
 
 describe("link compartilhável", () => {
   test("só os campos diferentes do padrão entram no link (valor e meses sempre)", () => {
@@ -17,6 +17,14 @@ describe("link compartilhável", () => {
     if (campos !== null) {
       expect(camposParaPedido(campos)).toEqual(pedido);
     }
+  });
+
+  test("o modo projeção vai para o link; o padrão (olhando para trás) fica de fora", () => {
+    expect(pedidoParaParametros({ ...pedido, modo: "projecao" }).toString()).toBe(
+      "modo=projecao&valor=500&meses=12&aporte=200",
+    );
+    expect(parametrosParaCampos(new URLSearchParams("modo=projecao&valor=1&meses=2"))?.modo).toBe("projecao");
+    expect(parametrosParaCampos(new URLSearchParams("modo=xyz&valor=1&meses=2"))?.modo).toBe("historico");
   });
 
   test("link sem valor ou meses não é uma simulação", () => {

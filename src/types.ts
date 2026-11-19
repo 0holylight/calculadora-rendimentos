@@ -12,8 +12,12 @@ type AnoMes = {
 
 type IdAplicacao = "poupanca" | "cdb" | "lciLca" | "tesouroSelic";
 
+// Olhando para trás (dados reais do passado) ou projeção futura (expectativas do Boletim Focus)
+type Modo = "historico" | "projecao";
+
 // O que o usuário pede
 type Pedido = {
+  modo: Modo;
   valor: number;
   meses: number;
   aporteMensal: number;
@@ -57,10 +61,20 @@ type Inflacao = {
   correcaoInflacao: number; // montanteSobInflacao − totalAplicado
 };
 
+// As hipóteses de uma projeção, para mostrar ao usuário de onde vieram os números
+type Premissas = {
+  boletim: string; // data do Boletim Focus usado, aaaa-mm-dd
+  selicInicial: number; // % ao ano, no 1º mês da projeção
+  selicFinal: number; // % ao ano, no último mês
+  ipcaAnual: number; // inflação esperada no período, convertida para % ao ano
+  trMensal: number; // TR usada (média dos últimos 12 meses), % ao mês
+};
+
 type Simulacao = Inflacao &
   Pedido & {
     inicio: AnoMes;
     fim: AnoMes;
+    premissas: Premissas | null; // null quando olha para trás (não há hipótese: são dados reais)
     aplicacoes: ResultadoAplicacao[];
     trajetoriaInflacao: number[]; // a régua no fim de cada mês
     trajetoriaAplicado: number[]; // total depositado até cada mês
@@ -70,7 +84,9 @@ export type {
   Registro,
   AnoMes,
   IdAplicacao,
+  Modo,
   Pedido,
+  Premissas,
   RegrasAplicacao,
   Desempenho,
   ResultadoAplicacao,
