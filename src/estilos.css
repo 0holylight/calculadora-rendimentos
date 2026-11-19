@@ -815,8 +815,8 @@ body {
 .abas {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
-  padding: 4px;
+  gap: 6px;
+  padding: 6px;
   border: 1px solid var(--borda);
   border-radius: 16px;
   background-color: var(--painel);
@@ -832,25 +832,33 @@ body {
   gap: 2px;
   min-width: 0;
   padding: 8px 12px;
-  border: 0;
+  border: 1px solid rgba(238, 245, 240, 0.14);
   border-radius: 12px;
-  background: transparent;
+  background: rgba(238, 245, 240, 0.03);
   color: var(--texto-suave);
   font: inherit;
   text-align: left;
   cursor: pointer;
   transition:
     background 0.25s,
-    color 0.25s;
+    border-color 0.25s,
+    color 0.25s,
+    transform 0.15s;
 }
 
 .aba:hover {
-  background: rgba(238, 245, 240, 0.05);
+  border-color: rgba(95, 211, 148, 0.45);
+  background: rgba(95, 211, 148, 0.06);
   color: var(--texto);
 }
 
+.aba:active {
+  transform: scale(0.98);
+}
+
 .aba[aria-selected="true"] {
-  background: rgba(238, 245, 240, 0.1);
+  border-color: rgba(95, 211, 148, 0.6);
+  background: rgba(95, 211, 148, 0.1);
   color: var(--texto);
 }
 
