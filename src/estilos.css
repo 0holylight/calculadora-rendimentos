@@ -396,6 +396,107 @@ body {
   color: var(--negativo);
 }
 
+/* Placar: as aplicações ordenadas pelo rendimento real */
+.placar {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--borda);
+}
+
+.placar-titulo {
+  margin: 0 0 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--salvia);
+}
+
+.placar ol {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.placar li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "nome numero"
+    "trilho trilho";
+  gap: 6px 12px;
+  align-items: baseline;
+}
+
+.placar-nome {
+  grid-area: nome;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.placar-numero {
+  grid-area: numero;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.placar-numero small {
+  margin-left: 6px;
+  color: var(--texto-fraco);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.placar-trilho {
+  grid-area: trilho;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(238, 245, 240, 0.06);
+  overflow: hidden;
+}
+
+.placar-barra {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--esmeralda), var(--esmeralda-claro));
+  transform-origin: left center;
+  animation: crescer-barra 1.1s var(--curva) 0.6s both;
+}
+
+.placar li[data-sinal="positivo"] .placar-numero {
+  color: var(--esmeralda-claro);
+}
+
+.placar li[data-sinal="negativo"] .placar-numero {
+  color: var(--negativo);
+}
+
+.placar li[data-sinal="negativo"] .placar-barra {
+  background: var(--negativo);
+}
+
+.placar li:first-child .placar-nome {
+  color: var(--texto);
+  font-weight: 500;
+}
+
+.placar-nota {
+  margin: 14px 0 0;
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+}
+
+@keyframes crescer-barra {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 .cards {
   display: grid;
   gap: 20px;
@@ -752,6 +853,541 @@ body {
 
 /* ---------- Telas menores ---------- */
 
+/* ---------- Ajustes do formulário (% do CDI) ---------- */
+
+.frase-ajustes {
+  flex-basis: 100%;
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--borda);
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+  line-height: 2;
+}
+
+.frase-ajustes .campo-inline {
+  border-bottom-width: 1px;
+}
+
+.frase-ajustes .campo-inline input {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.frase-ajustes .prefixo {
+  font-size: 0.9em;
+}
+
+/* ---------- O custo de deixar na poupança ---------- */
+
+.custo {
+  margin: 0 0 28px;
+  padding: 20px 22px;
+  border: 1px solid rgba(233, 150, 127, 0.28);
+  border-radius: 18px;
+  background: rgba(233, 150, 127, 0.07);
+}
+
+.custo-neutro {
+  border-color: var(--borda);
+  background: rgba(238, 245, 240, 0.04);
+}
+
+.custo-rotulo {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--negativo);
+}
+
+.custo-numero {
+  margin: 0 0 10px;
+  font-family: var(--serifa);
+  font-size: clamp(2.2rem, 4vw, 2.8rem);
+  line-height: 1;
+}
+
+.custo-texto {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--esmeralda-claro);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--texto);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Carrossel: abas em cima, um card por vez ---------- */
+
+.carrossel {
+  min-width: 0;
+}
+
+.abas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background-color: var(--painel);
+  background-image: var(--grao-suave);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.aba {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    color 0.25s;
+}
+
+.aba:hover {
+  background: rgba(238, 245, 240, 0.05);
+  color: var(--texto);
+}
+
+.aba[aria-selected="true"] {
+  background: rgba(238, 245, 240, 0.1);
+  color: var(--texto);
+}
+
+.aba:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: -2px;
+}
+
+.aba-nome {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aba-taxa {
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.aba[aria-selected="true"][data-sinal="positivo"] .aba-taxa {
+  color: var(--esmeralda-claro);
+}
+
+.aba[aria-selected="true"][data-sinal="negativo"] .aba-taxa {
+  color: var(--negativo);
+}
+
+/* O card atual fica no fluxo (define a altura); os outros ficam por cima, deslocados para os lados.
+   Usa "translate" (e não "transform") para não brigar com o tilt do card da poupança. */
+.carrossel-janela {
+  position: relative;
+  overflow-x: clip;
+  overflow-clip-margin: 24px;
+}
+
+.carrossel-janela > .card {
+  transition:
+    translate 0.6s var(--curva),
+    opacity 0.45s ease,
+    --luz-perto 0.4s ease-out,
+    --luz-dentro 0.4s ease-out,
+    --tilt-x 0.35s ease-out,
+    --tilt-y 0.35s ease-out;
+}
+
+.carrossel-janela > .card[data-posicao="antes"],
+.carrossel-janela > .card[data-posicao="depois"] {
+  position: absolute;
+  inset: 0 0 auto 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.carrossel-janela > .card[data-posicao="antes"] {
+  translate: calc(-100% - 48px) 0;
+}
+
+.carrossel-janela > .card[data-posicao="depois"] {
+  translate: calc(100% + 48px) 0;
+}
+
+.carrossel-controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.carrossel-posicao {
+  min-width: 6ch;
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.seta-carrossel {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: 50%;
+  background: var(--painel);
+  color: var(--texto);
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    border-color 0.25s;
+}
+
+.seta-carrossel:hover {
+  border-color: var(--esmeralda);
+  background: rgba(95, 211, 148, 0.1);
+}
+
+.seta-carrossel:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
+}
+
+/* Aviso de carência (LCI/LCA) */
+.aviso {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(250, 178, 25, 0.08);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.aviso > span[aria-hidden] {
+  color: #fab219;
+}
+
+.aviso strong {
+  color: var(--texto);
+}
+
+/* ---------- Gráfico do ganho real mês a mês ---------- */
+
+.grafico {
+  margin-top: 56px;
+  padding: 28px;
+  border: 1px solid var(--borda);
+  border-radius: 24px;
+  background-color: var(--painel);
+  background-image: var(--grao-suave);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation-delay: 0.6s;
+}
+
+.grafico-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 32px;
+  margin-bottom: 20px;
+}
+
+.grafico-topo h3 {
+  margin: 0 0 6px;
+  font-family: var(--serifa);
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+.grafico-topo p {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.grafico-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grafico-legenda button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    background 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+}
+
+.grafico-legenda button:hover {
+  color: var(--texto);
+}
+
+.grafico-legenda button[aria-pressed="true"] {
+  border-color: rgba(95, 211, 148, 0.4);
+  background: rgba(95, 211, 148, 0.08);
+  color: var(--texto);
+}
+
+.grafico-legenda button:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
+}
+
+/* Chave de linha: um traço curto na cor da série (cinza para as que não estão em destaque) */
+.grafico-chave {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(238, 245, 240, 0.35);
+}
+
+.grafico-legenda button[aria-pressed="true"] .grafico-chave,
+.grafico-dica li[data-ativa="true"] .grafico-chave {
+  background: var(--esmeralda-claro);
+}
+
+.grafico-area {
+  position: relative;
+  border-radius: 8px;
+  touch-action: pan-y;
+}
+
+.grafico-area:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 4px;
+}
+
+.grafico-area svg {
+  display: block;
+  overflow: visible;
+}
+
+.grafico-grade {
+  stroke: rgba(238, 245, 240, 0.07);
+  stroke-width: 1;
+}
+
+.grafico-zero {
+  stroke: rgba(238, 245, 240, 0.32);
+  stroke-width: 1;
+}
+
+.grafico-eixo {
+  fill: var(--texto-fraco);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-legenda-zero {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+}
+
+.grafico-chave-zero {
+  height: 1px;
+  background: rgba(238, 245, 240, 0.5);
+}
+
+.placar-carencia {
+  margin-left: 4px;
+  color: #fab219;
+}
+
+.grafico-linha {
+  fill: none;
+  stroke: rgba(238, 245, 240, 0.26);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.grafico-linha-ativa {
+  stroke: var(--esmeralda-claro);
+  stroke-width: 2;
+}
+
+.grafico-lavagem {
+  fill: rgba(95, 211, 148, 0.1);
+}
+
+.grafico-ponto {
+  fill: var(--esmeralda-claro);
+  stroke: var(--fundo);
+  stroke-width: 2;
+}
+
+.grafico-ponto-apagado {
+  fill: rgba(238, 245, 240, 0.55);
+  stroke: var(--fundo);
+  stroke-width: 2;
+}
+
+.grafico-rotulo-final {
+  fill: var(--texto);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-mira {
+  stroke: rgba(238, 245, 240, 0.3);
+  stroke-width: 1;
+}
+
+.grafico-captura {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.grafico-dica {
+  position: absolute;
+  top: 8px;
+  z-index: 3;
+  min-width: 220px;
+  padding: 12px 14px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: rgba(6, 19, 15, 0.92);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.grafico-dica-data {
+  margin: 0 0 8px;
+  color: var(--texto-fraco);
+  font-size: 0.75rem;
+}
+
+.grafico-dica ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grafico-dica li {
+  display: grid;
+  grid-template-columns: 14px auto 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.grafico-dica strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-dica li span:last-child {
+  color: var(--texto-suave);
+}
+
+.grafico-tabela {
+  margin-top: 18px;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.grafico-tabela summary {
+  width: fit-content;
+  color: var(--esmeralda-claro);
+  cursor: pointer;
+}
+
+.grafico-tabela-rolagem {
+  max-height: 320px;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.grafico-tabela table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.grafico-tabela th,
+.grafico-tabela td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--borda);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.grafico-tabela th:first-child {
+  text-align: left;
+}
+
+.grafico-tabela thead th {
+  position: sticky;
+  top: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-weight: 500;
+}
+
 @media (max-width: 860px) {
   .resultado {
     grid-template-columns: 1fr;
@@ -784,5 +1420,19 @@ body {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .abas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grafico {
+    padding: 22px 16px;
+  }
+
+  .grafico-dica {
+    min-width: 180px;
   }
 }

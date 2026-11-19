@@ -1,61 +1,106 @@
-// Gerente: recebe o pedido (valor e meses), chama o fornecedor (bcb) e o cozinheiro (calculos) e devolve o resultado.
+// Gerente: recebe o pedido, chama o fornecedor (bcb) e o cozinheiro (calculos) e devolve o resultado.
 // Não faz contas, não exibe e não trata erro: quem exibe (terminal ou página) decide como responder a ele.
-import type { ResultadoAplicacao, Simulacao } from "./types.ts";
-import { taxasMensais, ultimoMes } from "./bcb.ts";
-import { inicioDaJanela } from "./datas.ts";
+import type { IdAplicacao, Pedido, RegrasAplicacao, Simulacao } from "./types.ts";
+import { taxasDiariasPorMes, taxasMensais, ultimoMes } from "./bcb.ts";
+import { diasAteOResgate, diasPorResgate, inicioDaJanela } from "./datas.ts";
 import {
-  taxasParaFator,
-  fatorParaTaxa,
-  aplicarFator,
-  ganhoSobreReferencia,
-  fatorReal,
+  aplicadoMesAMes,
+  desempenho,
+  fatoresDiariosPorMes,
+  fatoresMensais,
+  inflacaoDoPeriodo,
+  inflacaoMesAMes,
+  listaDeAportes,
+  regrasCdb,
+  regrasLciLca,
+  regrasPoupanca,
+  regrasTesouroSelic,
+  trajetoria,
 } from "./calculos.ts";
 
 const codIpca = 433;
 const codPoup = 196;
+const codCdi = 12;
+const codSelic = 11;
 
-export async function simular(valor: number, meses: number): Promise<Simulacao> {
+// 20 anos: cobre o período em que as regras de IR atuais valem (desde 2005)
+export const mesesMaximo = 240;
+export const percentualMaximo = 300;
+
+function validar(pedido: Pedido): void {
+  const { valor, meses, aporteMensal, percentualCdb, percentualLciLca } = pedido;
   if (!Number.isFinite(valor) || valor <= 0) {
     throw new Error(`Valor inválido: ${valor}`);
   }
-  if (!Number.isInteger(meses) || meses < 1) {
-    throw new Error(`Prazo inválido: ${meses} (use um número inteiro de meses)`);
+  if (!Number.isInteger(meses) || meses < 1 || meses > mesesMaximo) {
+    throw new Error(`Prazo inválido: ${meses} (use um número inteiro de 1 a ${mesesMaximo} meses)`);
   }
+  if (!Number.isFinite(aporteMensal) || aporteMensal < 0) {
+    throw new Error(`Aporte mensal inválido: ${aporteMensal}`);
+  }
+  for (const percentual of [percentualCdb, percentualLciLca]) {
+    if (!Number.isFinite(percentual) || percentual <= 0 || percentual > percentualMaximo) {
+      throw new Error(`Percentual do CDI inválido: ${percentual} (use de 1 a ${percentualMaximo})`);
+    }
+  }
+}
 
-  // O IPCA sai com atraso, então o último mês dele define o fim do período das duas séries
+export async function simular(pedido: Pedido): Promise<Simulacao> {
+  validar(pedido);
+  const { valor, meses, aporteMensal, percentualCdb, percentualLciLca } = pedido;
+
+  // O IPCA sai com atraso, então o último mês dele define o fim do período de todas as séries
   const fim = await ultimoMes(codIpca);
   const inicio = inicioDaJanela(fim, meses);
 
-  const [ipcaMensal, poupMensal] = await Promise.all([
+  const [ipca, poupanca, cdi, selic] = await Promise.all([
     taxasMensais(codIpca, inicio, fim),
     taxasMensais(codPoup, inicio, fim),
+    taxasDiariasPorMes(codCdi, inicio, fim),
+    taxasDiariasPorMes(codSelic, inicio, fim),
   ]);
 
-  const fatorAcumuladoIpca = taxasParaFator(ipcaMensal);
-  const fatorAcumuladoPoup = taxasParaFator(poupMensal);
+  const aportes = listaDeAportes(valor, aporteMensal, meses);
+  const dias = diasAteOResgate(inicio, fim);
+  const diasMesAMes = diasPorResgate(inicio, fim);
+  const fatoresIpca = fatoresMensais(ipca);
+  const inflacao = inflacaoDoPeriodo(aportes, fatoresIpca);
 
-  const ganhoBrutoPoup = ganhoSobreReferencia(valor, fatorAcumuladoPoup, 1);
-
-  const poupanca: ResultadoAplicacao = {
-    id: "poupanca",
-    nome: "Poupança",
-    taxaBruta: fatorParaTaxa(fatorAcumuladoPoup),
-    ganhoBruto: ganhoBrutoPoup,
-    impostos: 0, // isenta de IR para pessoa física e sem taxas
-    ganhoLiquido: ganhoBrutoPoup, // sem impostos, líquido = bruto
-    valorFinal: aplicarFator(valor, fatorAcumuladoPoup),
-    ganhoReal: ganhoSobreReferencia(valor, fatorAcumuladoPoup, fatorAcumuladoIpca),
-    taxaReal: fatorParaTaxa(fatorReal(fatorAcumuladoPoup, fatorAcumuladoIpca)),
-  };
+  // Cada aplicação: id, nome, os fatores de cada mês e as regras fixas
+  const cardapio: { id: IdAplicacao; nome: string; fatores: number[]; regras: RegrasAplicacao }[] = [
+    { id: "poupanca", nome: "Poupança", fatores: fatoresMensais(poupanca), regras: regrasPoupanca },
+    {
+      id: "cdb",
+      nome: `CDB ${percentualCdb}% do CDI`,
+      fatores: fatoresDiariosPorMes(cdi, percentualCdb),
+      regras: regrasCdb,
+    },
+    {
+      id: "lciLca",
+      nome: `LCI/LCA ${percentualLciLca}% do CDI`,
+      fatores: fatoresDiariosPorMes(cdi, percentualLciLca),
+      regras: regrasLciLca,
+    },
+    {
+      id: "tesouroSelic",
+      nome: "Tesouro Selic",
+      fatores: fatoresDiariosPorMes(selic),
+      regras: regrasTesouroSelic,
+    },
+  ];
 
   return {
-    valor,
-    meses,
+    ...pedido,
     inicio,
     fim,
-    taxaInflacao: fatorParaTaxa(fatorAcumuladoIpca),
-    montanteSobInflacao: aplicarFator(valor, fatorAcumuladoIpca),
-    correcaoInflacao: ganhoSobreReferencia(valor, fatorAcumuladoIpca, 1),
-    aplicacoes: [poupanca],
+    ...inflacao,
+    trajetoriaInflacao: inflacaoMesAMes(aportes, fatoresIpca),
+    trajetoriaAplicado: aplicadoMesAMes(aportes),
+    aplicacoes: cardapio.map(({ id, nome, fatores, regras }) => ({
+      id,
+      nome,
+      ...desempenho(aportes, fatores, dias, regras, inflacao.montanteSobInflacao),
+      trajetoria: trajetoria(aportes, fatores, diasMesAMes, regras),
+    })),
   };
 }

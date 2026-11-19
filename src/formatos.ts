@@ -28,3 +28,31 @@ const mesPorExtenso = new Intl.DateTimeFormat("pt-BR", {
 export function formatarMesExtenso(anoMes: AnoMes): string {
   return mesPorExtenso.format(new Date(anoMes.ano, anoMes.mes - 1, 1));
 }
+
+const mesCurto = new Intl.DateTimeFormat("pt-BR", { month: "short", year: "2-digit" });
+
+// "nov. de 25" vira "nov/25", para os rótulos do gráfico
+export function formatarMesCurto(anoMes: AnoMes): string {
+  const partes = mesCurto.formatToParts(new Date(anoMes.ano, anoMes.mes - 1, 1));
+  const mes = partes.find((parte) => parte.type === "month")?.value.replace(".", "") ?? "";
+  const ano = partes.find((parte) => parte.type === "year")?.value ?? "";
+  return `${mes}/${ano}`;
+}
+
+const reaisCompacto = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+const reaisInteiros = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+// Eixo do gráfico: "R$ 500" abaixo de 10 mil, "R$ 12 mil" a partir daí
+export function formatarReaisEixo(valor: number, compacto: boolean): string {
+  return compacto ? reaisCompacto.format(valor) : reaisInteiros.format(valor);
+}
