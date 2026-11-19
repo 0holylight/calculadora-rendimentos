@@ -1,6 +1,6 @@
 // Gráfico do ganho real mês a mês: quanto cada aplicação estava acima (ou abaixo) da inflação
 // se o dinheiro fosse resgatado naquele mês. A linha do zero é o "empate" com a inflação.
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent, RefObject } from "react";
 import type { AnoMes, IdAplicacao, Simulacao } from "./types.ts";
 import { somarMeses } from "./datas.ts";
@@ -24,12 +24,15 @@ function marcasDoEixo(minimo: number, maximo: number): number[] {
   return marcas;
 }
 
+// Largura real da área do gráfico. Mede uma vez antes da primeira pintura (useLayoutEffect, para não
+// aparecer um gráfico do tamanho errado) e depois acompanha as mudanças de tamanho (ResizeObserver).
 function useLargura<T extends HTMLElement>(): [RefObject<T | null>, number] {
   const ref = useRef<T>(null);
   const [largura, setLargura] = useState(720);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const elemento = ref.current;
     if (elemento === null) return;
+    setLargura(elemento.getBoundingClientRect().width);
     const observador = new ResizeObserver(([entrada]) => {
       if (entrada !== undefined) setLargura(entrada.contentRect.width);
     });
@@ -72,7 +75,7 @@ export function GraficoGanhoReal({
   const yMax = marcas[marcas.length - 1] ?? 1;
   const compacto = Math.max(Math.abs(yMin), Math.abs(yMax)) >= 10_000;
 
-  const altura = largura < 560 ? 240 : 300;
+  const altura = largura < 560 ? 230 : 250;
   const larguraUtil = Math.max(largura - margem.esquerda - margem.direita, 10);
   const alturaUtil = altura - margem.topo - margem.base;
   const ultimo = datas.length - 1;
@@ -119,10 +122,7 @@ export function GraficoGanhoReal({
       <header className="grafico-topo">
         <div>
           <h3 id="grafico-titulo">Ganho real mês a mês</h3>
-          <p>
-            Quanto cada aplicação estaria acima da inflação se você resgatasse naquele mês, já
-            descontados impostos e taxas. Abaixo da linha do zero, o dinheiro perdeu poder de compra.
-          </p>
+          <p>Se você sacasse em cada mês, já com impostos. Abaixo do zero, perdeu da inflação.</p>
         </div>
         <ul className="grafico-legenda" aria-label="Escolha a aplicação em destaque">
           {series.map((serie) => (

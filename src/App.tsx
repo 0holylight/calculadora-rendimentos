@@ -301,161 +301,33 @@ function Resultado({ simulacao }: { simulacao: Simulacao }) {
     ancora.current?.scrollIntoView({ behavior: semMovimento ? "auto" : "smooth", block: "start" });
   }, []);
 
-  const inicio = formatarMesExtenso(simulacao.inicio);
-  const fim = formatarMesExtenso(simulacao.fim);
-  const prazo = simulacao.meses === 1 ? "1 mês" : `${simulacao.meses} meses`;
-  const comAportes = simulacao.aporteMensal > 0 && simulacao.meses > 1;
-
-  return (
-    <>
-      <section ref={ancora} className="resultado">
-        <div className="contexto revelar">
-          <p className="sobretitulo">
-            De {inicio} a {fim}
-          </p>
-          {comAportes ? (
-            <h2 className="contexto-titulo">
-              Veja no que <strong>{formatarReais(simulacao.valor)}</strong>, mais{" "}
-              <strong>{formatarReais(simulacao.aporteMensal)}</strong> por mês, teriam se
-              transformado em {prazo}.
-            </h2>
-          ) : (
-            <h2 className="contexto-titulo">
-              Veja no que <strong>{formatarReais(simulacao.valor)}</strong> teriam se transformado
-              se você tivesse aplicado há {prazo}.
-            </h2>
-          )}
-
-          <CustoDaPoupanca aplicacoes={simulacao.aplicacoes} aoSelecionar={setAtiva} />
-
-          <div className="inflacao">
-            <p className="inflacao-numero">
-              <span>Inflação do período</span>
-              <strong>{formatarTaxa(simulacao.taxaInflacao)}</strong>
-            </p>
-            {comAportes ? (
-              <p>
-                Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Você
-                teria depositado <strong>{formatarReais(simulacao.totalAplicado)}</strong> ao todo,
-                e cada depósito perde poder de compra a partir do mês em que entra. Para comprar o
-                mesmo que esse dinheiro comprava quando foi depositado, você precisaria de{" "}
-                <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em {fim}.
-              </p>
-            ) : (
-              <p>
-                Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Para
-                comprar o mesmo que {formatarReais(simulacao.valor)} compravam em {inicio}, você
-                precisaria de <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em{" "}
-                {fim}.
-              </p>
-            )}
-            <p>
-              Esse é o valor que o seu dinheiro precisava alcançar só para não perder poder de
-              compra. O que passar disso é ganho de verdade.
-            </p>
-          </div>
-
-          <Placar aplicacoes={simulacao.aplicacoes} />
-        </div>
-
-        <Carrossel
-          simulacao={simulacao}
-          ativa={ativa}
-          aoSelecionar={setAtiva}
-        />
-      </section>
-
-      <GraficoGanhoReal simulacao={simulacao} ativa={ativa} aoSelecionar={setAtiva} />
-    </>
+  const aplicacoes = simulacao.aplicacoes;
+  const indice = Math.max(
+    0,
+    aplicacoes.findIndex((aplicacao) => aplicacao.id === ativa),
   );
-}
 
-// A frase que faz a pessoa agir: quanto ela deixou na mesa por ficar na poupança.
-// Só compara com aplicações que poderiam ser resgatadas inteiras no fim (sem carência).
-function CustoDaPoupanca({
-  aplicacoes,
-  aoSelecionar,
-}: {
-  aplicacoes: ResultadoAplicacao[];
-  aoSelecionar: (id: IdAplicacao) => void;
-}) {
-  const poupanca = aplicacoes.find((aplicacao) => aplicacao.id === "poupanca");
-  const [melhor] = aplicacoes
-    .filter((aplicacao) => aplicacao.id !== "poupanca" && aplicacao.emCarencia === 0)
-    .toSorted((a, b) => b.valorFinal - a.valorFinal);
-  if (poupanca === undefined || melhor === undefined) {
-    return null;
+  // Anda pelas aplicações em círculo (depois da última vem a primeira)
+  function irPara(novo: number) {
+    const total = aplicacoes.length;
+    const aplicacao = aplicacoes[((novo % total) + total) % total];
+    if (aplicacao !== undefined) setAtiva(aplicacao.id);
   }
 
-  const diferenca = melhor.valorFinal - poupanca.valorFinal;
-  if (diferenca < 0.005) {
-    return (
-      <div className="custo custo-neutro">
-        <p className="custo-texto">
-          Neste período, a poupança rendeu tanto quanto ou mais que as outras opções. Isso acontece
-          quando os juros estão baixos.
-        </p>
+  return (
+    <section ref={ancora} className="resultado">
+      <Resumo simulacao={simulacao} ativa={ativa} aoSelecionar={setAtiva} />
+      <Abas aplicacoes={aplicacoes} indice={indice} irPara={irPara} />
+      <div className="painel">
+        <GraficoGanhoReal simulacao={simulacao} ativa={ativa} aoSelecionar={setAtiva} />
+        <Carrossel simulacao={simulacao} indice={indice} irPara={irPara} />
       </div>
-    );
-  }
-
-  return (
-    <div className="custo">
-      <p className="custo-rotulo">O custo de deixar na poupança</p>
-      <p className="custo-numero">{formatarReais(diferenca)}</p>
-      <p className="custo-texto">
-        É quanto você teria a mais investindo em {melhor.nome} no mesmo período, já descontados os
-        impostos.{" "}
-        <button type="button" className="link" onClick={() => aoSelecionar(melhor.id)}>
-          Ver {textos[melhor.id].curto} →
-        </button>
-      </p>
-    </div>
+    </section>
   );
 }
 
-// Comparação rápida: as aplicações ordenadas pelo rendimento real, com uma barra proporcional
-function Placar({ aplicacoes }: { aplicacoes: ResultadoAplicacao[] }) {
-  const ordenadas = aplicacoes.toSorted((a, b) => b.taxaReal - a.taxaReal);
-  const maior = Math.max(...aplicacoes.map((aplicacao) => Math.abs(aplicacao.taxaReal)), 0.01);
-
-  return (
-    <div className="placar">
-      <p className="placar-titulo">Quem rendeu mais de verdade</p>
-      <ol>
-        {ordenadas.map((aplicacao) => (
-          <li key={aplicacao.id} data-sinal={aplicacao.taxaReal >= 0 ? "positivo" : "negativo"}>
-            <span className="placar-nome">
-              {aplicacao.nome}
-              {aplicacao.emCarencia > 0 && (
-                <span className="placar-carencia" title="Parte dos depósitos ainda em carência">
-                  *
-                </span>
-              )}
-            </span>
-            <span className="placar-trilho" aria-hidden="true">
-              <span
-                className="placar-barra"
-                style={{ width: `${(Math.abs(aplicacao.taxaReal) / maior) * 100}%` }}
-              />
-            </span>
-            <span className="placar-numero">
-              {formatarTaxa(aplicacao.taxaReal)} <small>{formatarReais(aplicacao.ganhoReal)}</small>
-            </span>
-          </li>
-        ))}
-      </ol>
-      <p className="placar-nota">
-        Rendimento real: depois de impostos, taxas e inflação.
-        {aplicacoes.some((aplicacao) => aplicacao.emCarencia > 0) &&
-          " * Parte do dinheiro ainda estaria em carência e não poderia ser sacada no fim do período."}
-      </p>
-    </div>
-  );
-}
-
-// Um card por vez: as abas escolhem a aplicação; setas, teclado e deslizar no celular também
-function Carrossel({
+// O topo do resultado: o período, o pedido e três números (poupança × aba, inflação e a régua)
+function Resumo({
   simulacao,
   ativa,
   aoSelecionar,
@@ -464,31 +336,236 @@ function Carrossel({
   ativa: IdAplicacao;
   aoSelecionar: (id: IdAplicacao) => void;
 }) {
-  const aplicacoes = simulacao.aplicacoes;
-  const indice = Math.max(
-    0,
-    aplicacoes.findIndex((aplicacao) => aplicacao.id === ativa),
-  );
-  const toqueInicial = useRef<number | null>(null);
-  const abas = useRef<(HTMLButtonElement | null)[]>([]);
+  const inicio = formatarMesExtenso(simulacao.inicio);
+  const fim = formatarMesExtenso(simulacao.fim);
+  const prazo = simulacao.meses === 1 ? "1 mês" : `${simulacao.meses} meses`;
+  const comAportes = simulacao.aporteMensal > 0 && simulacao.meses > 1;
 
-  function irPara(novo: number, focarAba = false) {
-    const total = aplicacoes.length;
-    const destino = ((novo % total) + total) % total;
-    const aplicacao = aplicacoes[destino];
-    if (aplicacao === undefined) return;
-    aoSelecionar(aplicacao.id);
-    if (focarAba) abas.current[destino]?.focus();
+  return (
+    <header className="resumo revelar">
+      <p className="sobretitulo">
+        De {inicio} a {fim}
+      </p>
+      <h2 className="resumo-titulo">
+        <strong>{formatarReais(simulacao.valor)}</strong>
+        {comAportes && (
+          <>
+            {" "}
+            + <strong>{formatarReais(simulacao.aporteMensal)}</strong> por mês
+          </>
+        )}{" "}
+        durante {prazo}
+        {comAportes && (
+          <span className="resumo-total"> · {formatarReais(simulacao.totalAplicado)} investidos ao todo</span>
+        )}
+      </h2>
+
+      <div className="resumo-numeros">
+        <ComparacaoComPoupanca
+          aplicacoes={simulacao.aplicacoes}
+          ativa={ativa}
+          aoSelecionar={aoSelecionar}
+        />
+
+        <div className="numero">
+          <p className="numero-rotulo">
+            Inflação do período
+            <button
+              type="button"
+              className="ajuda"
+              popoverTarget="explica-inflacao"
+              aria-label="O que é a inflação do período?"
+            >
+              ?
+            </button>
+          </p>
+          <p className="numero-valor numero-inflacao">{formatarTaxa(simulacao.taxaInflacao)}</p>
+          <p className="numero-texto">o quanto os preços subiram (IPCA)</p>
+        </div>
+
+        <div className="numero">
+          <p className="numero-rotulo">Seu dinheiro precisava virar</p>
+          <p className="numero-valor">{formatarReais(simulacao.montanteSobInflacao)}</p>
+          <p className="numero-texto">
+            {comAportes
+              ? `Os ${formatarReais(simulacao.totalAplicado)} que você depositou equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`
+              : `${formatarReais(simulacao.valor)} de ${inicio} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`}
+          </p>
+        </div>
+      </div>
+
+      <div id="explica-inflacao" className="explicacao" popover="auto">
+        <p className="explicacao-titulo">Inflação do período: {formatarTaxa(simulacao.taxaInflacao)}</p>
+        {comAportes ? (
+          <p>
+            Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Você teria
+            depositado <strong>{formatarReais(simulacao.totalAplicado)}</strong> ao todo, e cada
+            depósito perde poder de compra a partir do mês em que entra. Para comprar o mesmo que
+            esse dinheiro comprava quando foi depositado, você precisaria de{" "}
+            <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em {fim}.
+          </p>
+        ) : (
+          <p>
+            Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Para comprar
+            o mesmo que {formatarReais(simulacao.valor)} compravam em {inicio}, você precisaria de{" "}
+            <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em {fim}.
+          </p>
+        )}
+        <p>
+          Esse é o valor que o seu dinheiro precisava alcançar só para não perder poder de compra. O
+          que passar disso é ganho de verdade.
+        </p>
+        <button type="button" className="link" popoverTarget="explica-inflacao" popoverTargetAction="hide">
+          Entendi
+        </button>
+      </div>
+    </header>
+  );
+}
+
+// Compara a aplicação da aba com a poupança. Na aba da poupança, compara com a melhor alternativa
+// que poderia ser sacada inteira no fim (sem carência): é o "custo de deixar na poupança".
+function ComparacaoComPoupanca({
+  aplicacoes,
+  ativa,
+  aoSelecionar,
+}: {
+  aplicacoes: ResultadoAplicacao[];
+  ativa: IdAplicacao;
+  aoSelecionar: (id: IdAplicacao) => void;
+}) {
+  const poupanca = aplicacoes.find((aplicacao) => aplicacao.id === "poupanca");
+  if (poupanca === undefined) return null;
+
+  if (ativa === "poupanca") {
+    const [melhor] = aplicacoes
+      .filter((aplicacao) => aplicacao.id !== "poupanca" && aplicacao.emCarencia === 0)
+      .toSorted((a, b) => b.valorFinal - a.valorFinal);
+    const diferenca = melhor === undefined ? 0 : melhor.valorFinal - poupanca.valorFinal;
+
+    if (melhor === undefined || diferenca < 0.005) {
+      return (
+        <div className="numero" data-tom="neutro">
+          <p className="numero-rotulo">Poupança</p>
+          <p className="numero-valor">Foi a melhor</p>
+          <p className="numero-texto">nenhuma outra opção rendeu mais neste período</p>
+        </div>
+      );
+    }
+    return (
+      <div className="numero" data-tom="custo">
+        <p className="numero-rotulo">O custo de deixar na poupança</p>
+        <p className="numero-valor">{formatarReais(diferenca)}</p>
+        <p className="numero-texto">
+          a menos que em {melhor.nome}, a melhor opção.{" "}
+          <button type="button" className="link" onClick={() => aoSelecionar(melhor.id)}>
+            Ver {textos[melhor.id].curto} →
+          </button>
+        </p>
+      </div>
+    );
   }
 
-  function teclarNasAbas(evento: KeyboardEvent<HTMLDivElement>) {
-    if (evento.key === "ArrowRight") irPara(indice + 1, true);
-    else if (evento.key === "ArrowLeft") irPara(indice - 1, true);
-    else if (evento.key === "Home") irPara(0, true);
-    else if (evento.key === "End") irPara(aplicacoes.length - 1, true);
+  const atual = aplicacoes.find((aplicacao) => aplicacao.id === ativa);
+  if (atual === undefined) return null;
+  const diferenca = atual.valorFinal - poupanca.valorFinal;
+  const carencia = atual.emCarencia > 0 ? " Parte ainda estaria em carência." : "";
+
+  if (diferenca >= 0.005) {
+    return (
+      <div className="numero" data-tom="vantagem">
+        <p className="numero-rotulo">{textos[atual.id].curto} × poupança</p>
+        <p className="numero-valor">+{formatarReais(diferenca)}</p>
+        <p className="numero-texto">
+          a mais que na poupança, já descontados os impostos.{carencia}
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="numero" data-tom="custo">
+      <p className="numero-rotulo">{textos[atual.id].curto} × poupança</p>
+      <p className="numero-valor">−{formatarReais(Math.abs(diferenca))}</p>
+      <p className="numero-texto">a menos que na poupança neste período.{carencia}</p>
+    </div>
+  );
+}
+
+// As abas escolhem a aplicação e já mostram o rendimento real de cada uma (fazem o papel de placar)
+function Abas({
+  aplicacoes,
+  indice,
+  irPara,
+}: {
+  aplicacoes: ResultadoAplicacao[];
+  indice: number;
+  irPara: (novo: number) => void;
+}) {
+  const abas = useRef<(HTMLButtonElement | null)[]>([]);
+  const melhor = aplicacoes.toSorted((a, b) => b.taxaReal - a.taxaReal)[0];
+
+  function irEFocar(novo: number) {
+    const total = aplicacoes.length;
+    irPara(novo);
+    abas.current[((novo % total) + total) % total]?.focus();
+  }
+
+  function teclar(evento: KeyboardEvent<HTMLDivElement>) {
+    if (evento.key === "ArrowRight") irEFocar(indice + 1);
+    else if (evento.key === "ArrowLeft") irEFocar(indice - 1);
+    else if (evento.key === "Home") irEFocar(0);
+    else if (evento.key === "End") irEFocar(aplicacoes.length - 1);
     else return;
     evento.preventDefault();
   }
+
+  return (
+    <div className="abas revelar" role="tablist" aria-label="Aplicações" onKeyDown={teclar}>
+      {aplicacoes.map((aplicacao, i) => (
+        <button
+          key={aplicacao.id}
+          ref={(elemento) => {
+            abas.current[i] = elemento;
+          }}
+          type="button"
+          role="tab"
+          id={`aba-${aplicacao.id}`}
+          aria-selected={i === indice}
+          aria-controls={`painel-${aplicacao.id}`}
+          tabIndex={i === indice ? 0 : -1}
+          className="aba"
+          data-sinal={aplicacao.taxaReal >= 0 ? "positivo" : "negativo"}
+          onClick={() => irPara(i)}
+        >
+          <span className="aba-nome">{textos[aplicacao.id].curto}</span>
+          <span className="aba-taxa">
+            {formatarTaxa(aplicacao.taxaReal)} real
+            {aplicacao.id === melhor?.id && <span className="aba-melhor"> · maior ganho</span>}
+            {aplicacao.emCarencia > 0 && (
+              <span className="aba-carencia" title="Parte dos depósitos ainda em carência">
+                {" "}
+                *
+              </span>
+            )}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// Um card por vez. No celular, também dá para deslizar o dedo ou usar as setas embaixo.
+function Carrossel({
+  simulacao,
+  indice,
+  irPara,
+}: {
+  simulacao: Simulacao;
+  indice: number;
+  irPara: (novo: number) => void;
+}) {
+  const aplicacoes = simulacao.aplicacoes;
+  const toqueInicial = useRef<number | null>(null);
 
   function comecarToque(evento: TouchEvent<HTMLDivElement>) {
     toqueInicial.current = evento.changedTouches[0]?.clientX ?? null;
@@ -505,29 +582,6 @@ function Carrossel({
 
   return (
     <div className="carrossel revelar">
-      <div className="abas" role="tablist" aria-label="Aplicações" onKeyDown={teclarNasAbas}>
-        {aplicacoes.map((aplicacao, i) => (
-          <button
-            key={aplicacao.id}
-            ref={(elemento) => {
-              abas.current[i] = elemento;
-            }}
-            type="button"
-            role="tab"
-            id={`aba-${aplicacao.id}`}
-            aria-selected={i === indice}
-            aria-controls={`painel-${aplicacao.id}`}
-            tabIndex={i === indice ? 0 : -1}
-            className="aba"
-            data-sinal={aplicacao.taxaReal >= 0 ? "positivo" : "negativo"}
-            onClick={() => irPara(i)}
-          >
-            <span className="aba-nome">{textos[aplicacao.id].curto}</span>
-            <span className="aba-taxa">{formatarTaxa(aplicacao.taxaReal)}</span>
-          </button>
-        ))}
-      </div>
-
       <div className="carrossel-janela" onTouchStart={comecarToque} onTouchEnd={terminarToque}>
         {aplicacoes.map((aplicacao, i) => (
           <CardAplicacao
@@ -589,16 +643,24 @@ function CardAplicacao({
 
       <div className="valor-final">
         <span className="rotulo">Teria se tornado</span>
-        <span className="valor-final-numero">{formatarReais(valorFinal)}</span>
+        <div className="valor-final-linha">
+          <span className="valor-final-numero">{formatarReais(valorFinal)}</span>
+          <span
+            className="valor-final-delta"
+            data-sinal={aplicacao.ganhoLiquido >= 0 ? "positivo" : "negativo"}
+          >
+            {aplicacao.ganhoLiquido >= 0 ? "+" : "−"}
+            {formatarReais(Math.abs(aplicacao.ganhoLiquido))} <small>líquido</small>
+          </span>
+        </div>
       </div>
 
       {aplicacao.emCarencia > 0 && (
         <p className="aviso" role="note">
           <span aria-hidden="true">⚠</span>
           <span>
-            <strong>Atenção:</strong> {formatarReais(aplicacao.emCarencia)} dos depósitos ainda
-            estariam em carência no fim do período, porque a LCI/LCA exige pelo menos 9 meses antes
-            do resgate. O valor mostrado é quanto eles valeriam, mas ainda não daria para sacar.
+            <strong>{formatarReais(aplicacao.emCarencia)} ainda sem poder sacar:</strong> carência
+            mínima de 9 meses.
           </span>
         </p>
       )}
@@ -610,7 +672,7 @@ function CardAplicacao({
         </li>
         <li data-sinal="+">
           <span className="escada-rotulo">
-            Rendimento bruto <small>{formatarTaxa(aplicacao.taxaBruta)} sobre o total investido</small>
+            Rendimento bruto <small>{formatarTaxa(aplicacao.taxaBruta)}</small>
           </span>
           <span className="escada-valor">{formatarReais(aplicacao.ganhoBruto)}</span>
         </li>
@@ -621,9 +683,7 @@ function CardAplicacao({
           <span className="escada-valor">{formatarReais(aplicacao.impostos)}</span>
         </li>
         <li data-sinal="−">
-          <span className="escada-rotulo">
-            Inflação do período <small>o quanto os preços subiram, em reais</small>
-          </span>
+          <span className="escada-rotulo">Inflação do período</span>
           <span className="escada-valor">{formatarReais(simulacao.correcaoInflacao)}</span>
         </li>
         <li data-sinal="=" className="escada-total">
@@ -642,8 +702,8 @@ function CardAplicacao({
         </p>
         <p className="real-texto">
           {ganhou
-            ? `Durante esse período, o valor investido cresceu ${formatarTaxa(aplicacao.taxaReal)} além da inflação, já descontados impostos e taxas. Na prática, seu poder de compra aumentou.`
-            : `Durante esse período, o valor investido rendeu menos que a inflação: o resultado real foi de ${formatarTaxa(aplicacao.taxaReal)}, já descontados impostos e taxas. Na prática, seu dinheiro perdeu poder de compra.`}
+            ? `Seu poder de compra cresceu ${formatarTaxa(aplicacao.taxaReal)} além da inflação, já descontados impostos e taxas.`
+            : `Rendeu menos que a inflação: seu poder de compra caiu ${formatarTaxa(Math.abs(aplicacao.taxaReal))}, já descontados impostos e taxas.`}
         </p>
       </div>
     </article>

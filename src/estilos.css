@@ -348,187 +348,19 @@ body {
   overflow-wrap: anywhere;
 }
 
-/* ---------- Resultado: contexto à esquerda, aplicações à direita ---------- */
-
-.resultado {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: 48px;
-  align-items: start;
-  margin-top: 64px;
-  scroll-margin-top: 24px;
-}
-
-.contexto {
-  position: sticky;
-  top: 32px;
-}
-
 .sobretitulo {
-  margin: 0 0 14px;
+  margin: 0 0 8px;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--salvia);
-}
-
-.contexto-titulo {
-  margin: 0 0 32px;
-  font-family: var(--serifa);
-  font-weight: 400;
-  font-size: clamp(1.9rem, 3.6vw, 2.6rem);
-  line-height: 1.12;
-}
-
-.contexto-titulo strong {
-  font-weight: 400;
-  font-style: italic;
-  color: var(--esmeralda-claro);
-}
-
-.inflacao {
-  padding-top: 24px;
-  border-top: 1px solid var(--borda);
-}
-
-.inflacao p {
-  margin: 0 0 12px;
-  color: var(--texto-suave);
-}
-
-.inflacao strong {
-  color: var(--texto);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.inflacao .inflacao-numero {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  color: var(--texto-fraco);
-  font-size: 0.85rem;
-}
-
-.inflacao .inflacao-numero strong {
-  font-family: var(--serifa);
-  font-size: 2rem;
-  font-weight: 400;
-  color: var(--negativo);
-}
-
-/* Placar: as aplicações ordenadas pelo rendimento real */
-.placar {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--borda);
-}
-
-.placar-titulo {
-  margin: 0 0 16px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--salvia);
-}
-
-.placar ol {
-  display: grid;
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.placar li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "nome numero"
-    "trilho trilho";
-  gap: 6px 12px;
-  align-items: baseline;
-}
-
-.placar-nome {
-  grid-area: nome;
-  color: var(--texto-suave);
-  font-size: 0.95rem;
-}
-
-.placar-numero {
-  grid-area: numero;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-.placar-numero small {
-  margin-left: 6px;
-  color: var(--texto-fraco);
-  font-weight: 400;
-  font-size: 0.8rem;
-}
-
-.placar-trilho {
-  grid-area: trilho;
-  display: block;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(238, 245, 240, 0.06);
-  overflow: hidden;
-}
-
-.placar-barra {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--esmeralda), var(--esmeralda-claro));
-  transform-origin: left center;
-  animation: crescer-barra 1.1s var(--curva) 0.6s both;
-}
-
-.placar li[data-sinal="positivo"] .placar-numero {
-  color: var(--esmeralda-claro);
-}
-
-.placar li[data-sinal="negativo"] .placar-numero {
-  color: var(--negativo);
-}
-
-.placar li[data-sinal="negativo"] .placar-barra {
-  background: var(--negativo);
-}
-
-.placar li:first-child .placar-nome {
-  color: var(--texto);
-  font-weight: 500;
-}
-
-.placar-nota {
-  margin: 14px 0 0;
-  color: var(--texto-fraco);
-  font-size: 0.8rem;
-}
-
-@keyframes crescer-barra {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-.cards {
-  display: grid;
-  gap: 20px;
 }
 
 /* ---------- Card de cada aplicação ---------- */
 
 .card {
-  padding: 28px;
+  padding: 20px 22px;
   border: 1px solid var(--borda);
   border-radius: 24px;
   background-color: var(--painel);
@@ -546,27 +378,67 @@ body {
 }
 
 .card-topo p {
+  display: -webkit-box;
   margin: 0;
+  overflow: hidden;
   color: var(--texto-fraco);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .valor-final {
   display: flex;
   flex-direction: column;
-  margin: 28px 0;
+  margin: 12px 0 10px;
 }
 
 .rotulo {
-  color: var(--texto-fraco);
-  font-size: 0.85rem;
+  color: var(--salvia);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* O número principal do card: grande, com um brilho verde suave atrás, e o rendimento líquido ao lado */
+.valor-final-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-top: 2px;
 }
 
 .valor-final-numero {
   font-family: var(--serifa);
-  font-size: clamp(2.8rem, 6vw, 3.8rem);
-  line-height: 1.05;
+  font-size: clamp(2.9rem, 5.4vw, 3.6rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 36px rgba(95, 211, 148, 0.28);
+}
+
+.valor-final-delta {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(95, 211, 148, 0.12);
+  color: var(--esmeralda-claro);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.valor-final-delta small {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.valor-final-delta[data-sinal="negativo"] {
+  background: rgba(233, 150, 127, 0.12);
+  color: var(--negativo);
 }
 
 /* A escada: valor → + bruto → − impostos → − inflação → = real */
@@ -581,7 +453,7 @@ body {
   grid-template-columns: 20px 1fr auto;
   align-items: baseline;
   gap: 12px;
-  padding: 12px 0;
+  padding: 7px 0;
   border-top: 1px solid var(--borda);
 }
 
@@ -602,7 +474,8 @@ body {
 }
 
 .escada-rotulo small {
-  display: block;
+  display: inline;
+  margin-left: 6px;
   color: var(--texto-fraco);
   font-size: 0.8rem;
 }
@@ -624,8 +497,8 @@ body {
 
 /* Rendimento real ······ 3,50% */
 .real {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 12px;
+  padding: 12px 16px;
   border-radius: 16px;
   background: rgba(95, 211, 148, 0.07);
 }
@@ -646,7 +519,7 @@ body {
 
 .real-numero {
   font-family: var(--serifa);
-  font-size: 2.4rem;
+  font-size: 1.9rem;
   font-weight: 400;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -911,43 +784,6 @@ body {
   font-size: 0.9em;
 }
 
-/* ---------- O custo de deixar na poupança ---------- */
-
-.custo {
-  margin: 0 0 28px;
-  padding: 20px 22px;
-  border: 1px solid rgba(233, 150, 127, 0.28);
-  border-radius: 18px;
-  background: rgba(233, 150, 127, 0.07);
-}
-
-.custo-neutro {
-  border-color: var(--borda);
-  background: rgba(238, 245, 240, 0.04);
-}
-
-.custo-rotulo {
-  margin: 0 0 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--negativo);
-}
-
-.custo-numero {
-  margin: 0 0 10px;
-  font-family: var(--serifa);
-  font-size: clamp(2.2rem, 4vw, 2.8rem);
-  line-height: 1;
-}
-
-.custo-texto {
-  margin: 0;
-  color: var(--texto-suave);
-  font-size: 0.95rem;
-}
-
 .link {
   padding: 0;
   border: 0;
@@ -980,7 +816,6 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
-  margin-bottom: 16px;
   padding: 4px;
   border: 1px solid var(--borda);
   border-radius: 16px;
@@ -996,7 +831,7 @@ body {
   align-items: flex-start;
   gap: 2px;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 0;
   border-radius: 12px;
   background: transparent;
@@ -1082,7 +917,7 @@ body {
 }
 
 .carrossel-controles {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   gap: 16px;
@@ -1127,13 +962,13 @@ body {
 .aviso {
   display: flex;
   gap: 10px;
-  margin: 0 0 18px;
-  padding: 12px 14px;
+  margin: 0 0 10px;
+  padding: 8px 12px;
   border-radius: 12px;
   background: rgba(250, 178, 25, 0.08);
   color: var(--texto-suave);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .aviso > span[aria-hidden] {
@@ -1147,8 +982,8 @@ body {
 /* ---------- Gráfico do ganho real mês a mês ---------- */
 
 .grafico {
-  margin-top: 56px;
-  padding: 28px;
+  min-width: 0;
+  padding: 24px;
   border: 1px solid var(--borda);
   border-radius: 24px;
   background-color: var(--painel);
@@ -1163,15 +998,17 @@ body {
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px 32px;
-  margin-bottom: 20px;
+  gap: 12px 32px;
+  margin-bottom: 14px;
 }
 
+/* Mesmo estilo do título do card: a serifa fica bonita grande, mas perde força em tamanho pequeno */
 .grafico-topo h3 {
   margin: 0 0 6px;
-  font-family: var(--serifa);
-  font-size: 1.8rem;
-  font-weight: 400;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .grafico-topo p {
@@ -1281,11 +1118,6 @@ body {
 .grafico-chave-zero {
   height: 1px;
   background: rgba(238, 245, 240, 0.5);
-}
-
-.placar-carencia {
-  margin-left: 4px;
-  color: #fab219;
 }
 
 .grafico-linha {
@@ -1421,14 +1253,187 @@ body {
   font-weight: 500;
 }
 
+/* ---------- Resultado: resumo no topo, abas, e card + gráfico lado a lado ---------- */
+
+.resultado {
+  display: grid;
+  gap: 16px;
+  margin-top: 56px;
+  scroll-margin-top: 16px;
+}
+
+.resumo-titulo {
+  margin: 0 0 14px;
+  font-family: var(--serifa);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+  line-height: 1.15;
+}
+
+.resumo-titulo strong {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--esmeralda-claro);
+}
+
+.resumo-total {
+  color: var(--texto-fraco);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.resumo-numeros {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 12px;
+}
+
+.numero {
+  padding: 14px 16px;
+  border: 1px solid var(--borda);
+  border-radius: 18px;
+  background-color: var(--painel);
+  background-image: var(--grao-suave);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.numero p {
+  margin: 0;
+}
+
+.numero-rotulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px !important;
+  color: var(--salvia);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.numero-valor {
+  font-family: var(--serifa);
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  line-height: 1.1;
+}
+
+.numero-texto {
+  margin-top: 4px !important;
+  color: var(--texto-fraco);
+  font-size: 0.82rem;
+}
+
+.numero-inflacao {
+  color: var(--negativo);
+}
+
+.numero[data-tom="custo"] {
+  border-color: rgba(233, 150, 127, 0.3);
+  background-color: rgba(233, 150, 127, 0.07);
+}
+
+.numero[data-tom="custo"] .numero-rotulo {
+  color: var(--negativo);
+}
+
+.numero[data-tom="vantagem"] {
+  border-color: rgba(95, 211, 148, 0.3);
+  background-color: rgba(95, 211, 148, 0.07);
+}
+
+.numero[data-tom="vantagem"] .numero-rotulo {
+  color: var(--esmeralda-claro);
+}
+
+/* Botão "?" que abre a explicação da inflação */
+.ajuda {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--borda);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.ajuda:hover {
+  border-color: var(--esmeralda);
+  color: var(--texto);
+}
+
+.ajuda:focus-visible {
+  outline: 2px solid var(--esmeralda-claro);
+  outline-offset: 2px;
+}
+
+/* A explicação abre por cima da página (popover nativo do navegador: Esc ou clique fora fecham) */
+.explicacao {
+  width: min(460px, calc(100vw - 32px));
+  padding: 22px 24px;
+  border: 1px solid var(--borda);
+  border-radius: 18px;
+  background: #0b1d17;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.explicacao::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.explicacao p {
+  margin: 0 0 12px;
+}
+
+.explicacao strong {
+  color: var(--texto);
+}
+
+.explicacao-titulo {
+  color: var(--texto);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.painel {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.aba-melhor {
+  color: var(--texto-fraco);
+}
+
+.aba-carencia {
+  color: #fab219;
+}
+
 @media (max-width: 860px) {
-  .resultado {
-    grid-template-columns: 1fr;
-    gap: 32px;
+  .painel {
+    /* minmax(0, …): sem isso a coluna cresce para caber o gráfico, e o gráfico mede a coluna já crescida */
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .contexto {
-    position: static;
+  .resumo-numeros {
+    grid-template-columns: 1fr;
+  }
+
+  .carrossel-controles {
+    display: flex;
   }
 }
 
