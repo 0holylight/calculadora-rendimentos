@@ -1,7 +1,7 @@
 {
   "name": "calculadora-rendimentos",
   "version": "1.0.0",
-  "description": "",
+  "description": "Quanto o dinheiro rende de verdade, descontada a inflação: poupança, CDB, LCI/LCA e Tesouro Selic com dados do Banco Central",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

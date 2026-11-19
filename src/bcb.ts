@@ -1,6 +1,7 @@
 // Fornecedor: busca a série no Banco Central, valida o formato e converte data e valor (strings).
 import type { AnoMes, Registro } from "./types.ts";
 import { formatarMes, mesesEntre, somarMeses, ultimoDiaDoMes } from "./datas.ts";
+import { ErroBancoCentral } from "./erros.ts";
 
 const urlBase = "https://api.bcb.gov.br/dados/serie/bcdata.sgs";
 
@@ -29,7 +30,7 @@ function ehRegistro(item: unknown): item is Registro {
 function paraAnoMes(data: string, codigo: number): AnoMes {
   const partes = /^\d{2}\/(\d{2})\/(\d{4})$/.exec(data);
   if (partes === null) {
-    throw new Error(`Data inválida na série ${codigo}: "${data}"`);
+    throw new ErroBancoCentral(`Data inválida na série ${codigo}: "${data}"`);
   }
   return { ano: Number(partes[2]), mes: Number(partes[1]) };
 }
@@ -38,43 +39,69 @@ function paraDataBcb(anoMes: AnoMes, dia = 1): string {
   return `${String(dia).padStart(2, "0")}/${formatarMes(anoMes)}`;
 }
 
+// Cache em memória: a mesma busca repetida em até 15 minutos reaproveita a resposta, sem ir ao Banco Central.
+// Guarda a Promise (e não o resultado) para que dois pedidos iguais ao mesmo tempo façam uma busca só.
+// As listas são readonly porque são compartilhadas: quem recebe não pode alterar o que está guardado.
+const validadeDoCache = 15 * 60 * 1000;
+const cache = new Map<string, { guardadoEm: number; leituras: Promise<readonly Leitura[]> }>();
+
+function buscarLeituras(urls: string[], codigo: number): Promise<readonly Leitura[]> {
+  const chave = urls.join(" ");
+  const guardado = cache.get(chave);
+  if (guardado !== undefined && Date.now() - guardado.guardadoEm < validadeDoCache) {
+    return guardado.leituras;
+  }
+  const leituras = buscarNoBancoCentral(urls, codigo);
+  cache.set(chave, { guardadoEm: Date.now(), leituras });
+  // Uma busca que falhou não pode ficar guardada. Isto não trata o erro: quem chamou continua recebendo a falha.
+  leituras.catch(() => cache.delete(chave));
+  return leituras;
+}
+
 // O servidor do BCB às vezes responde HTTP 304 (sem corpo) para uma URL exata, mesmo sem pedido
 // condicional: é um defeito do cache deles, que fica preso àquela combinação de parâmetros.
 // Por isso cada busca recebe URLs alternativas que pedem os mesmos dados, tentadas em ordem.
-async function buscarLeituras(urls: string[], codigo: number): Promise<Leitura[]> {
+// Falhas de rede e respostas que não são JSON viram ErroBancoCentral: a fronteira traduz o erro
+// para o "idioma" do app, assim como traduz string para number.
+async function buscarNoBancoCentral(urls: string[], codigo: number): Promise<Leitura[]> {
   for (const url of urls) {
-    const response = await fetch(url);
+    const response = await fetch(url).catch((causa: unknown) => {
+      throw new ErroBancoCentral(`Sem conexão com o Banco Central (série ${codigo})`, { cause: causa });
+    });
     if (response.status === 304) {
       continue;
     }
     if (!response.ok) {
-      throw new Error(
+      throw new ErroBancoCentral(
         `Erro ao buscar a série ${codigo} no Banco Central (HTTP ${response.status})`,
       );
     }
-    return converterLeituras(await response.json(), codigo);
+    const result: unknown = await response.json().catch((causa: unknown) => {
+      throw new ErroBancoCentral(`A série ${codigo} não veio em JSON`, { cause: causa });
+    });
+    return converterLeituras(result, codigo);
   }
-  throw new Error(
-    `O Banco Central não devolveu a série ${codigo} (HTTP 304 em todas as tentativas). Tente de novo em alguns minutos.`,
+  throw new ErroBancoCentral(
+    `O Banco Central não devolveu a série ${codigo} (HTTP 304 em todas as tentativas)`,
   );
 }
 
 function converterLeituras(result: unknown, codigo: number): Leitura[] {
 
   if (!Array.isArray(result)) {
-    throw new Error(`A série ${codigo} não veio como lista`);
+    throw new ErroBancoCentral(`A série ${codigo} não veio como lista`);
   }
   if (result.length === 0) {
-    throw new Error(`A série ${codigo} veio vazia`);
+    throw new ErroBancoCentral(`A série ${codigo} veio vazia`);
   }
   if (!result.every(ehRegistro)) {
-    throw new Error(`A série ${codigo} tem itens fora do formato { data, valor }`);
+    throw new ErroBancoCentral(`A série ${codigo} tem itens fora do formato { data, valor }`);
   }
 
   return result.map((registro) => {
     const taxa = Number(registro.valor);
     if (registro.valor.trim() === "" || !Number.isFinite(taxa)) {
-      throw new Error(
+      throw new ErroBancoCentral(
         `Valor inválido na série ${codigo} em ${registro.data}: "${registro.valor}"`,
       );
     }
@@ -90,7 +117,7 @@ export async function ultimoMes(codigo: number): Promise<AnoMes> {
   // Com /ultimos/2 ou 3 vêm mais registros, e a ordem depende da série: fica com o mais recente
   const [ultima] = leituras.toSorted((a, b) => mesesEntre(a.anoMes, b.anoMes));
   if (ultima === undefined) {
-    throw new Error(`A série ${codigo} não informou o último mês`);
+    throw new ErroBancoCentral(`A série ${codigo} não informou o último mês`);
   }
   return ultima.anoMes;
 }
@@ -116,7 +143,7 @@ export async function taxasMensais(
     (leitura, posicao) => mesesEntre(inicio, leitura.anoMes) === posicao,
   );
   if (ordenadas.length !== esperados || !mesesCorretos) {
-    throw new Error(
+    throw new ErroBancoCentral(
       `A série ${codigo} não cobre os ${esperados} meses de ${formatarMes(inicio)} a ${formatarMes(fim)} (veio ${ordenadas.length})`,
     );
   }
@@ -134,7 +161,7 @@ export async function taxasDiariasPorMes(
   const totalMeses = mesesEntre(inicio, fim) + 1;
 
   // Divide o período em pedaços que a API aceita e busca todos ao mesmo tempo
-  const consultas: Promise<Leitura[]>[] = [];
+  const consultas: Promise<readonly Leitura[]>[] = [];
   for (let desloc = 0; desloc < totalMeses; desloc += mesesPorConsultaDiaria) {
     const de = somarMeses(inicio, desloc);
     const ate = somarMeses(inicio, Math.min(desloc + mesesPorConsultaDiaria, totalMeses) - 1);
@@ -160,14 +187,14 @@ export async function taxasDiariasPorMes(
   for (const leitura of pedacos.flat()) {
     const doMes = porMes[mesesEntre(inicio, leitura.anoMes)];
     if (doMes === undefined) {
-      throw new Error(`A série ${codigo} trouxe uma data fora do período: ${formatarMes(leitura.anoMes)}`);
+      throw new ErroBancoCentral(`A série ${codigo} trouxe uma data fora do período: ${formatarMes(leitura.anoMes)}`);
     }
     doMes.push(leitura.taxa);
   }
 
   porMes.forEach((taxas, posicao) => {
     if (taxas.length < minimoDiasUteisNoMes) {
-      throw new Error(
+      throw new ErroBancoCentral(
         `A série ${codigo} está incompleta em ${formatarMes(somarMeses(inicio, posicao))} (${taxas.length} dias)`,
       );
     }

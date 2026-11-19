@@ -17,6 +17,7 @@ import {
   regrasTesouroSelic,
   trajetoria,
 } from "./calculos.ts";
+import { ErroPedido } from "./erros.ts";
 
 const codIpca = 433;
 const codPoup = 196;
@@ -30,17 +31,17 @@ export const percentualMaximo = 300;
 function validar(pedido: Pedido): void {
   const { valor, meses, aporteMensal, percentualCdb, percentualLciLca } = pedido;
   if (!Number.isFinite(valor) || valor <= 0) {
-    throw new Error(`Valor inválido: ${valor}`);
+    throw new ErroPedido("O valor aplicado precisa ser maior que zero.");
   }
   if (!Number.isInteger(meses) || meses < 1 || meses > mesesMaximo) {
-    throw new Error(`Prazo inválido: ${meses} (use um número inteiro de 1 a ${mesesMaximo} meses)`);
+    throw new ErroPedido(`O prazo precisa ser um número inteiro de meses, de 1 a ${mesesMaximo}.`);
   }
   if (!Number.isFinite(aporteMensal) || aporteMensal < 0) {
-    throw new Error(`Aporte mensal inválido: ${aporteMensal}`);
+    throw new ErroPedido("O depósito mensal não pode ser negativo. Use 0 se não quiser depósitos.");
   }
   for (const percentual of [percentualCdb, percentualLciLca]) {
     if (!Number.isFinite(percentual) || percentual <= 0 || percentual > percentualMaximo) {
-      throw new Error(`Percentual do CDI inválido: ${percentual} (use de 1 a ${percentualMaximo})`);
+      throw new ErroPedido(`O percentual do CDI precisa estar entre 1% e ${percentualMaximo}%.`);
     }
   }
 }

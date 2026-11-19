@@ -7,11 +7,12 @@ import { formatarMesExtenso, formatarReais, formatarTaxa } from "./formatos.ts";
 import { useContagem } from "./useContagem.ts";
 import { useLuzDoCursor } from "./useLuzDoCursor.ts";
 import { GraficoGanhoReal } from "./Grafico.tsx";
+import { ErroBancoCentral, ErroPedido } from "./erros.ts";
 
 type Estado =
   | { tipo: "inicial" }
   | { tipo: "carregando" }
-  | { tipo: "erro"; mensagem: string }
+  | { tipo: "erro"; titulo: string; detalhe: string | null }
   | { tipo: "pronto"; simulacao: Simulacao; rodada: number };
 
 // Textos de cada aplicação. Se um IdAplicacao novo entrar no types.ts, o TS cobra o texto dele aqui.
@@ -41,6 +42,24 @@ const textos: Record<IdAplicacao, { curto: string; descricao: string; notaImpost
     notaImpostos: "IR sobre o rendimento; custódia da B3 só acima de R$ 10 mil",
   },
 };
+
+// Traduz o erro para quem nunca investiu. O detalhe técnico fica guardado num "ver detalhes".
+function explicarErro(e: unknown): { titulo: string; detalhe: string | null } {
+  if (e instanceof ErroPedido) {
+    return { titulo: e.message, detalhe: null };
+  }
+  if (e instanceof ErroBancoCentral) {
+    return {
+      titulo:
+        "O Banco Central não respondeu como esperado. Isso costuma ser passageiro: tente de novo em alguns minutos.",
+      detalhe: e.message,
+    };
+  }
+  return {
+    titulo: "Algo deu errado do nosso lado. Tente de novo; se continuar, recarregue a página.",
+    detalhe: e instanceof Error ? e.message : String(e),
+  };
+}
 
 // Linha pequena embaixo de "Impostos e taxas": o que foi cobrado, ou a nota da aplicação se nada foi
 function detalheImpostos(aplicacao: ResultadoAplicacao): string {
@@ -122,8 +141,8 @@ export function App() {
       rodada.current += 1;
       setEstado({ tipo: "pronto", simulacao, rodada: rodada.current });
     } catch (e) {
-      const mensagem = e instanceof Error ? e.message : "Erro inesperado";
-      setEstado({ tipo: "erro", mensagem });
+      console.error(e);
+      setEstado({ tipo: "erro", ...explicarErro(e) });
     }
   }
 
@@ -224,9 +243,15 @@ export function App() {
         {estado.tipo === "carregando" && <Carregando />}
 
         {estado.tipo === "erro" && (
-          <p className="erro" role="alert">
-            Não foi possível simular: {estado.mensagem}
-          </p>
+          <div className="erro" role="alert">
+            <p>{estado.titulo}</p>
+            {estado.detalhe !== null && (
+              <details>
+                <summary>Detalhes técnicos</summary>
+                <code>{estado.detalhe}</code>
+              </details>
+            )}
+          </div>
         )}
 
         {estado.tipo === "pronto" && (
@@ -234,6 +259,11 @@ export function App() {
         )}
 
         <footer className="rodape">
+          <p className="rodape-aviso">
+            <strong>Ferramenta educativa, não é recomendação de investimento.</strong> Os resultados
+            mostram o passado e servem para comparar opções. Antes de investir, confira as taxas, os
+            prazos e as garantias com o seu banco ou corretora.
+          </p>
           <p>
             Fonte: Banco Central do Brasil (SGS), séries 433 (IPCA), 196 (poupança), 12 (CDI) e 11
             (Selic). Esta é uma simulação do passado: rentabilidade passada não garante rentabilidade

@@ -325,6 +325,29 @@ body {
   color: var(--negativo);
 }
 
+.erro p {
+  margin: 0;
+}
+
+.erro details {
+  margin-top: 8px;
+  color: var(--texto-fraco);
+  font-size: 0.8rem;
+}
+
+.erro summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.erro code {
+  display: block;
+  margin-top: 6px;
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
 /* ---------- Resultado: contexto à esquerda, aplicações à direita ---------- */
 
 .resultado {
@@ -776,6 +799,16 @@ body {
 .rodape p {
   margin: 0;
   max-width: 70ch;
+}
+
+.rodape .rodape-aviso {
+  margin-bottom: 12px;
+  color: var(--texto-suave);
+}
+
+.rodape-aviso strong {
+  color: var(--texto);
+  font-weight: 500;
 }
 
 /* ---------- O fluxo da revelação: cada parte entra um pouco depois da anterior ---------- */
