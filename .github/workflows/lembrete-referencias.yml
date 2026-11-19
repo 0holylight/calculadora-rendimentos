@@ -1,0 +1,42 @@
+# Lembrete trimestral: abre uma issue pedindo a revisão das faixas de CDB e LCI/LCA (src/referencias.ts).
+# Roda no dia 1º de fevereiro, maio, agosto e novembro. Para testar agora: Actions → este workflow → Run workflow.
+name: Lembrete das taxas de referência
+
+on:
+  schedule:
+    - cron: "0 12 1 2,5,8,11 *" # 12h UTC = 9h em Brasília
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  lembrete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Abre a issue (se ainda não houver uma aberta)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          titulo="Revisar as faixas de referência de CDB e LCI/LCA"
+
+          abertas=$(gh issue list --state open --search "in:title \"$titulo\"" --json number --jq 'length')
+          if [ "$abertas" != "0" ]; then
+            echo "Já existe uma issue aberta com esse título. Nada a fazer."
+            exit 0
+          fi
+
+          cat > corpo.md <<'TEXTO'
+          Lembrete automático (a cada 3 meses).
+
+          - [ ] Procurar notícias recentes sobre as taxas de CDB e LCI/LCA (levantamentos como os da Quantum Finance aparecem na imprensa) e conferir nos apps de bancos e corretoras.
+          - [ ] Atualizar `faixasDeMercado` em `src/referencias.ts`, inclusive o `revisadoEm`.
+          - [ ] Conferir se mudaram as regras de LCI/LCA (carência, isenção de IR) ou de IR/IOF, que ficam em `src/calculos.ts`.
+          - [ ] Rodar `npm test` e fazer o push.
+
+          Se o `revisadoEm` passar de 6 meses, o app avisa os usuários que a referência pode estar desatualizada.
+          TEXTO
+
+          # Atribui a issue ao dono do repositório: quem recebe uma atribuição é sempre notificado
+          gh issue create --title "$titulo" --body-file corpo.md --assignee "${{ github.repository_owner }}"

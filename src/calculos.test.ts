@@ -4,6 +4,8 @@ import {
   aliquotaIof,
   aliquotaIr,
   desempenho,
+  diasDoPrazo,
+  percentualEquivalenteCdb,
   fatorParaTaxa,
   fatoresAteOFim,
   fatoresDiariosPorMes,
@@ -65,6 +67,21 @@ describe("regras fixas", () => {
     expect(aliquotaIof(29)).toBe(0.03);
     expect(aliquotaIof(30)).toBe(0);
     expect(aliquotaIof(400)).toBe(0);
+  });
+});
+
+describe("taxa equivalente", () => {
+  test("12 meses viram 365 dias e 6 meses, 183", () => {
+    expect(diasDoPrazo(12)).toBe(365);
+    expect(diasDoPrazo(6)).toBe(183);
+  });
+
+  test("LCI de 90% em 1 ano equivale a um CDB de ~109% (o CDB paga 17,5% de IR)", () => {
+    expect(percentualEquivalenteCdb(90, 365)).toBeCloseTo(90 / 0.825, 10);
+  });
+
+  test("quanto menor o prazo, maior o IR, e maior o CDB equivalente", () => {
+    expect(percentualEquivalenteCdb(90, 100)).toBeGreaterThan(percentualEquivalenteCdb(90, 800));
   });
 });
 

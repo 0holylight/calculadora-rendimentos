@@ -10,6 +10,8 @@ import { GraficoGanhoReal } from "./Grafico.tsx";
 import { ErroBancoCentral, ErroPedido } from "./erros.ts";
 import { custoDaPoupanca } from "./comparacao.ts";
 import { desenharImagem } from "./imagem.ts";
+import { faixasDeMercado, referenciaDesatualizada } from "./referencias.ts";
+import { aliquotaIr, diasDoPrazo, percentualEquivalenteCdb } from "./calculos.ts";
 import type { Campos } from "./link.ts";
 import { camposPadrao, camposParaPedido, parametrosParaCampos, pedidoParaParametros } from "./link.ts";
 
@@ -261,6 +263,8 @@ export function App() {
             />{" "}
             do CDI.
           </p>
+
+          <Referencias meses={mesesDigitados} lci={lciDigitado} />
         </form>
 
         {estado.tipo === "carregando" && <Carregando />}
@@ -299,6 +303,41 @@ export function App() {
         </footer>
       </main>
     </>
+  );
+}
+
+// Embaixo dos percentuais: o que é uma taxa comum no mercado, e quanto a LCI/LCA digitada vale em "CDB".
+// A equivalência acompanha o que está digitado, antes mesmo de simular.
+function Referencias({ meses, lci }: { meses: string; lci: string }) {
+  const { cdb, lciLca, revisadoEm } = faixasDeMercado;
+  const agora = new Date();
+  const desatualizada = referenciaDesatualizada({ ano: agora.getFullYear(), mes: agora.getMonth() + 1 });
+  const prazo = Number(meses);
+  const isento = Number(lci);
+  const valido =
+    Number.isInteger(prazo) && prazo >= 1 && prazo <= mesesMaximo && Number.isFinite(isento) && isento > 0;
+  const dias = diasDoPrazo(prazo);
+
+  return (
+    <div className="referencias">
+      <p>
+        <strong>
+          Referência de {formatarMesExtenso(revisadoEm)}
+          {desatualizada ? " (pode estar desatualizada)" : ""}:
+        </strong>{" "}
+        CDBs costumam pagar de {cdb.minimo}% a{" "}
+        {cdb.maximo}% do CDI (os de grandes bancos ficam na parte de baixo) e LCI/LCA, de{" "}
+        {lciLca.minimo}% a {lciLca.maximo}%. São faixas típicas, não uma média oficial: confira as
+        taxas no app do seu banco ou corretora.
+      </p>
+      {valido && (
+        <p>
+          Neste prazo, uma LCI/LCA de {isento}% do CDI equivale a um CDB de{" "}
+          <strong>≈ {Math.round(percentualEquivalenteCdb(isento, dias))}% do CDI</strong>, porque o
+          CDB paga {(aliquotaIr(dias) * 100).toLocaleString("pt-BR")}% de IR sobre o rendimento.
+        </p>
+      )}
+    </div>
   );
 }
 

@@ -771,6 +771,25 @@ body {
   line-height: 2;
 }
 
+.referencias {
+  display: grid;
+  flex-basis: 100%;
+  gap: 6px;
+  margin-top: -6px;
+  color: var(--texto-fraco);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.referencias p {
+  margin: 0;
+}
+
+.referencias strong {
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
 .frase-ajustes .campo-inline {
   border-bottom-width: 1px;
 }

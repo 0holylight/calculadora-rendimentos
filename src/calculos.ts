@@ -50,6 +50,18 @@ export function aliquotaIof(dias: number): number {
   return (tabelaIof[dias - 1] ?? 0) / 100;
 }
 
+// Quanto um CDB precisaria pagar (em % do CDI) para empatar com uma aplicação isenta de IR (LCI/LCA),
+// no mesmo prazo: o CDB perde a alíquota de IR sobre o rendimento, então precisa render mais para compensar.
+// É a regra de bolso do mercado: aproximada, porque o % do CDI incide sobre a taxa de cada dia.
+export function percentualEquivalenteCdb(percentualIsento: number, dias: number): number {
+  return percentualIsento / (1 - aliquotaIr(dias));
+}
+
+// Dias corridos aproximados de um prazo em meses (o ano tem 365 dias, divididos em 12 meses)
+export function diasDoPrazo(meses: number): number {
+  return Math.round((meses * 365) / 12);
+}
+
 // ---------- Taxas e fatores ----------
 
 export function taxasParaFator(taxas: number[]): number {
