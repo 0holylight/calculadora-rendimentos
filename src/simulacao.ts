@@ -23,12 +23,7 @@ import {
   taxasParaFator,
   trajetoria,
 } from "./calculos.ts";
-import {
-  ipcaMesAMes,
-  poupancaMesAMes,
-  selicMesAMes,
-  taxasDiariasProjetadas,
-} from "./projecao.ts";
+import { ipcaMesAMes, poupancaMesAMes, selicMesAMes, taxasDiariasProjetadas } from "./projecao.ts";
 import { ErroPedido } from "./erros.ts";
 
 const codIpca = 433;

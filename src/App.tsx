@@ -145,11 +145,7 @@ export function App() {
       rodada.current += 1;
       setEstado({ tipo: "pronto", simulacao, rodada: rodada.current });
       // O endereço passa a descrever esta simulação (sem recarregar a página): é ele que vira o link
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}?${pedidoParaParametros(simulacao)}`,
-      );
+      window.history.replaceState(null, "", `${window.location.pathname}?${pedidoParaParametros(simulacao)}`);
     } catch (e) {
       console.error(e);
       setEstado({ tipo: "erro", ...explicarErro(e) });
@@ -311,30 +307,27 @@ export function App() {
           </div>
         )}
 
-        {estado.tipo === "pronto" && (
-          <Resultado key={estado.rodada} simulacao={estado.simulacao} />
-        )}
+        {estado.tipo === "pronto" && <Resultado key={estado.rodada} simulacao={estado.simulacao} />}
 
         <footer className="rodape">
           <p className="rodape-aviso">
-            <strong>Ferramenta educativa, não é recomendação de investimento.</strong> Os resultados
-            mostram o passado ou uma estimativa do futuro e servem para comparar opções. Antes de
-            investir, confira as taxas, os prazos e as garantias com o seu banco ou corretora.
+            <strong>Ferramenta educativa, não é recomendação de investimento.</strong> Os resultados mostram o
+            passado ou uma estimativa do futuro e servem para comparar opções. Antes de investir, confira as
+            taxas, os prazos e as garantias com o seu banco ou corretora.
           </p>
           <p>
-            Fonte: Banco Central do Brasil (SGS), séries 433 (IPCA), 196 (poupança), 12 (CDI) e 11
-            (Selic). Esta é uma simulação do passado: rentabilidade passada não garante rentabilidade
-            futura. Simplificações: todos os depósitos entram no dia 1º do mês e o resgate é no dia
-            1º do mês seguinte ao último IPCA; o CDB tem liquidez diária; a LCI/LCA tem carência de
-            9 meses (270 dias) por depósito; o Tesouro Selic rende a Selic do dia, sem ágio ou
-            deságio no preço; a custódia é calculada mês a mês; as regras atuais de IR, IOF, custódia
-            e carência valem para o período todo.
+            Fonte: Banco Central do Brasil (SGS), séries 433 (IPCA), 196 (poupança), 12 (CDI) e 11 (Selic).
+            Esta é uma simulação do passado: rentabilidade passada não garante rentabilidade futura.
+            Simplificações: todos os depósitos entram no dia 1º do mês e o resgate é no dia 1º do mês seguinte
+            ao último IPCA; o CDB tem liquidez diária; a LCI/LCA tem carência de 9 meses (270 dias) por
+            depósito; o Tesouro Selic rende a Selic do dia, sem ágio ou deságio no preço; a custódia é
+            calculada mês a mês; as regras atuais de IR, IOF, custódia e carência valem para o período todo.
           </p>
           <p>
-            Na projeção futura: expectativas medianas do Boletim Focus (Banco Central) para a Selic e o
-            IPCA; a Selic segue em linha reta até a expectativa de fim de cada ano; o CDI e a Selic do
-            Tesouro ficam 0,10 ponto abaixo da meta; a TR repete a média dos últimos 12 meses; depois
-            do último ano do Focus, valem as últimas expectativas. É uma estimativa, não uma promessa.
+            Na projeção futura: expectativas medianas do Boletim Focus (Banco Central) para a Selic e o IPCA;
+            a Selic segue em linha reta até a expectativa de fim de cada ano; o CDI e a Selic do Tesouro ficam
+            0,10 ponto abaixo da meta; a TR repete a média dos últimos 12 meses; depois do último ano do
+            Focus, valem as últimas expectativas. É uma estimativa, não uma promessa.
           </p>
         </footer>
       </main>
@@ -361,16 +354,15 @@ function Referencias({ meses, lci }: { meses: string; lci: string }) {
           Referência de {formatarMesExtenso(revisadoEm)}
           {desatualizada ? " (pode estar desatualizada)" : ""}:
         </strong>{" "}
-        CDBs costumam pagar de {cdb.minimo}% a{" "}
-        {cdb.maximo}% do CDI (os de grandes bancos ficam na parte de baixo) e LCI/LCA, de{" "}
-        {lciLca.minimo}% a {lciLca.maximo}%. São faixas típicas, não uma média oficial: confira as
-        taxas no app do seu banco ou corretora.
+        CDBs costumam pagar de {cdb.minimo}% a {cdb.maximo}% do CDI (os de grandes bancos ficam na parte de
+        baixo) e LCI/LCA, de {lciLca.minimo}% a {lciLca.maximo}%. São faixas típicas, não uma média oficial:
+        confira as taxas no app do seu banco ou corretora.
       </p>
       {valido && (
         <p>
           Neste prazo, uma LCI/LCA de {isento}% do CDI equivale a um CDB de{" "}
-          <strong>≈ {Math.round(percentualEquivalenteCdb(isento, dias))}% do CDI</strong>, porque o
-          CDB paga {(aliquotaIr(dias) * 100).toLocaleString("pt-BR")}% de IR sobre o rendimento.
+          <strong>≈ {Math.round(percentualEquivalenteCdb(isento, dias))}% do CDI</strong>, porque o CDB paga{" "}
+          {(aliquotaIr(dias) * 100).toLocaleString("pt-BR")}% de IR sobre o rendimento.
         </p>
       )}
     </div>
@@ -450,60 +442,57 @@ function Resumo({
         <Compartilhar simulacao={simulacao} />
       </div>
       <div className={`resumo-cabeca${futuro ? " resumo-cabeca-dupla" : ""}`}>
-      <h2 className="resumo-titulo">
-        <strong>{formatarReais(simulacao.valor)}</strong>
-        {comAportes && (
-          <>
-            {" "}
-            + <strong>{formatarReais(simulacao.aporteMensal)}</strong> por mês
-          </>
-        )}{" "}
-        durante {prazo}
-        {comAportes && (
-          <span className="resumo-total"> · {formatarReais(simulacao.totalAplicado)} investidos ao todo</span>
-        )}
-      </h2>
-
-      {premissas !== null && (
-        // As hipóteses da projeção ficam ao lado do título, em destaque: sem elas, o número não tem contexto
-        <div className="premissas">
-          <p className="premissas-rotulo">
-            Premissas da projeção
-            <span>
-              Boletim Focus de {formatarDataIso(premissas.boletim)} · estimativa, não promessa
+        <h2 className="resumo-titulo">
+          <strong>{formatarReais(simulacao.valor)}</strong>
+          {comAportes && (
+            <>
+              {" "}
+              + <strong>{formatarReais(simulacao.aporteMensal)}</strong> por mês
+            </>
+          )}{" "}
+          durante {prazo}
+          {comAportes && (
+            <span className="resumo-total">
+              {" "}
+              · {formatarReais(simulacao.totalAplicado)} investidos ao todo
             </span>
-          </p>
-          <dl className="premissas-dados">
-            <div>
-              <dt>Selic</dt>
-              <dd>
-                {formatarTaxa(premissas.selicInicial)} → {formatarTaxa(premissas.selicFinal)}{" "}
-                <small>ao ano</small>
-              </dd>
-            </div>
-            <div>
-              <dt>Inflação</dt>
-              <dd>
-                {formatarTaxa(premissas.ipcaAnual)} <small>ao ano</small>
-              </dd>
-            </div>
-            <div>
-              <dt>TR</dt>
-              <dd>
-                {formatarTaxa(premissas.trMensal)} <small>ao mês</small>
-              </dd>
-            </div>
-          </dl>
-        </div>
-      )}
+          )}
+        </h2>
+
+        {premissas !== null && (
+          // As hipóteses da projeção ficam ao lado do título, em destaque: sem elas, o número não tem contexto
+          <div className="premissas">
+            <p className="premissas-rotulo">
+              Premissas da projeção
+              <span>Boletim Focus de {formatarDataIso(premissas.boletim)} · estimativa, não promessa</span>
+            </p>
+            <dl className="premissas-dados">
+              <div>
+                <dt>Selic</dt>
+                <dd>
+                  {formatarTaxa(premissas.selicInicial)} → {formatarTaxa(premissas.selicFinal)}{" "}
+                  <small>ao ano</small>
+                </dd>
+              </div>
+              <div>
+                <dt>Inflação</dt>
+                <dd>
+                  {formatarTaxa(premissas.ipcaAnual)} <small>ao ano</small>
+                </dd>
+              </div>
+              <div>
+                <dt>TR</dt>
+                <dd>
+                  {formatarTaxa(premissas.trMensal)} <small>ao mês</small>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        )}
       </div>
 
       <div className="resumo-numeros">
-        <ComparacaoComPoupanca
-          aplicacoes={simulacao.aplicacoes}
-          ativa={ativa}
-          aoSelecionar={aoSelecionar}
-        />
+        <ComparacaoComPoupanca aplicacoes={simulacao.aplicacoes} ativa={ativa} aoSelecionar={aoSelecionar} />
 
         <div className="numero">
           <p className="numero-rotulo">
@@ -546,29 +535,29 @@ function Resumo({
         </p>
         {futuro ? (
           <p>
-            Pelas expectativas do mercado, os preços devem subir {formatarTaxa(simulacao.taxaInflacao)}{" "}
-            (IPCA) até {fim}. Cada depósito perde poder de compra a partir do mês em que entra. Para
-            comprar em {fim} o mesmo que esse dinheiro compra quando é depositado, você vai precisar de{" "}
+            Pelas expectativas do mercado, os preços devem subir {formatarTaxa(simulacao.taxaInflacao)} (IPCA)
+            até {fim}. Cada depósito perde poder de compra a partir do mês em que entra. Para comprar em {fim}{" "}
+            o mesmo que esse dinheiro compra quando é depositado, você vai precisar de{" "}
             <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong>.
           </p>
         ) : comAportes ? (
           <p>
             Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Você teria
-            depositado <strong>{formatarReais(simulacao.totalAplicado)}</strong> ao todo, e cada
-            depósito perde poder de compra a partir do mês em que entra. Para comprar o mesmo que
-            esse dinheiro comprava quando foi depositado, você precisaria de{" "}
+            depositado <strong>{formatarReais(simulacao.totalAplicado)}</strong> ao todo, e cada depósito
+            perde poder de compra a partir do mês em que entra. Para comprar o mesmo que esse dinheiro
+            comprava quando foi depositado, você precisaria de{" "}
             <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em {fim}.
           </p>
         ) : (
           <p>
-            Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Para comprar
-            o mesmo que {formatarReais(simulacao.valor)} compravam em {inicio}, você precisaria de{" "}
+            Nesse tempo, os preços subiram {formatarTaxa(simulacao.taxaInflacao)} (IPCA). Para comprar o mesmo
+            que {formatarReais(simulacao.valor)} compravam em {inicio}, você precisaria de{" "}
             <strong>{formatarReais(simulacao.montanteSobInflacao)}</strong> em {fim}.
           </p>
         )}
         <p>
-          Esse é o valor que o seu dinheiro precisava alcançar só para não perder poder de compra. O
-          que passar disso é ganho de verdade.
+          Esse é o valor que o seu dinheiro precisava alcançar só para não perder poder de compra. O que
+          passar disso é ganho de verdade.
         </p>
         <button type="button" className="link" popoverTarget="explica-inflacao" popoverTargetAction="hide">
           Entendi
@@ -701,9 +690,7 @@ function ComparacaoComPoupanca({
       <div className="numero" data-tom="vantagem">
         <p className="numero-rotulo">{textos[atual.id].curto} × poupança</p>
         <p className="numero-valor">+{formatarReais(diferenca)}</p>
-        <p className="numero-texto">
-          a mais que na poupança, já descontados os impostos.{carencia}
-        </p>
+        <p className="numero-texto">a mais que na poupança, já descontados os impostos.{carencia}</p>
       </div>
     );
   }
@@ -884,8 +871,8 @@ function CardAplicacao({
         <p className="aviso" role="note">
           <span aria-hidden="true">⚠</span>
           <span>
-            <strong>{formatarReais(aplicacao.emCarencia)} ainda sem poder sacar:</strong> carência
-            mínima de 9 meses.
+            <strong>{formatarReais(aplicacao.emCarencia)} ainda sem poder sacar:</strong> carência mínima de 9
+            meses.
           </span>
         </p>
       )}

@@ -1,7 +1,14 @@
 import { describe, expect, test } from "vitest";
 import { camposPadrao, camposParaPedido, parametrosParaCampos, pedidoParaParametros } from "./link.ts";
 
-const pedido = { modo: "historico" as const, valor: 500, meses: 12, aporteMensal: 200, percentualCdb: 100, percentualLciLca: 90 };
+const pedido = {
+  modo: "historico" as const,
+  valor: 500,
+  meses: 12,
+  aporteMensal: 200,
+  percentualCdb: 100,
+  percentualLciLca: 90,
+};
 
 describe("link compartilhável", () => {
   test("só os campos diferentes do padrão entram no link (valor e meses sempre)", () => {

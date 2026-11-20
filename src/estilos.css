@@ -256,7 +256,9 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.25s, transform 0.15s;
+  transition:
+    background 0.25s,
+    transform 0.15s;
 }
 
 .frase button .seta {

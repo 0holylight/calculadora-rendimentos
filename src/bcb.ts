@@ -87,7 +87,6 @@ async function buscarNoBancoCentral(urls: string[], codigo: number): Promise<Lei
 }
 
 function converterLeituras(result: unknown, codigo: number): Leitura[] {
-
   if (!Array.isArray(result)) {
     throw new ErroBancoCentral(`A série ${codigo} não veio como lista`);
   }
@@ -135,11 +134,7 @@ export async function ultimaTaxa(codigo: number): Promise<number> {
   return ultima.taxa;
 }
 
-export async function taxasMensais(
-  codigo: number,
-  inicio: AnoMes,
-  fim: AnoMes,
-): Promise<number[]> {
+export async function taxasMensais(codigo: number, inicio: AnoMes, fim: AnoMes): Promise<number[]> {
   // Séries mensais têm um registro no dia 1º: dataFinal no dia 1, 2 ou 3 traz os mesmos dados
   const leituras = await buscarLeituras(
     [1, 2, 3].map(
@@ -152,9 +147,7 @@ export async function taxasMensais(
   const ordenadas = leituras.toSorted((a, b) => mesesEntre(b.anoMes, a.anoMes));
 
   const esperados = mesesEntre(inicio, fim) + 1;
-  const mesesCorretos = ordenadas.every(
-    (leitura, posicao) => mesesEntre(inicio, leitura.anoMes) === posicao,
-  );
+  const mesesCorretos = ordenadas.every((leitura, posicao) => mesesEntre(inicio, leitura.anoMes) === posicao);
   if (ordenadas.length !== esperados || !mesesCorretos) {
     throw new ErroBancoCentral(
       `A série ${codigo} não cobre os ${esperados} meses de ${formatarMes(inicio)} a ${formatarMes(fim)} (veio ${ordenadas.length})`,
@@ -166,11 +159,7 @@ export async function taxasMensais(
 
 // Séries diárias (CDI, Selic): devolve as taxas de cada dia útil, agrupadas por mês.
 // posicao 0 = mês do início, posicao 1 = mês seguinte... A conta (produto) fica com o calculos.ts.
-export async function taxasDiariasPorMes(
-  codigo: number,
-  inicio: AnoMes,
-  fim: AnoMes,
-): Promise<number[][]> {
+export async function taxasDiariasPorMes(codigo: number, inicio: AnoMes, fim: AnoMes): Promise<number[][]> {
   const totalMeses = mesesEntre(inicio, fim) + 1;
 
   // Divide o período em pedaços que a API aceita e busca todos ao mesmo tempo
@@ -181,7 +170,11 @@ export async function taxasDiariasPorMes(
     // Alternativas: termina no último dia do mês ou avança até o dia 1º/2 do mês seguinte
     // (o que passar do mês "ate" é descartado no filter, porque pertence ao próximo pedaço)
     const seguinte = somarMeses(ate, 1);
-    const finais = [paraDataBcb(ate, ultimoDiaDoMes(ate)), paraDataBcb(seguinte, 1), paraDataBcb(seguinte, 2)];
+    const finais = [
+      paraDataBcb(ate, ultimoDiaDoMes(ate)),
+      paraDataBcb(seguinte, 1),
+      paraDataBcb(seguinte, 2),
+    ];
     consultas.push(
       buscarLeituras(
         finais.map(
@@ -189,9 +182,7 @@ export async function taxasDiariasPorMes(
             `${urlBase}.${codigo}/dados?formato=json&dataInicial=${paraDataBcb(de)}&dataFinal=${dataFinal}`,
         ),
         codigo,
-      ).then((leituras) =>
-        leituras.filter((leitura) => mesesEntre(leitura.anoMes, ate) >= 0),
-      ),
+      ).then((leituras) => leituras.filter((leitura) => mesesEntre(leitura.anoMes, ate) >= 0)),
     );
   }
   const pedacos = await Promise.all(consultas);
@@ -200,7 +191,9 @@ export async function taxasDiariasPorMes(
   for (const leitura of pedacos.flat()) {
     const doMes = porMes[mesesEntre(inicio, leitura.anoMes)];
     if (doMes === undefined) {
-      throw new ErroBancoCentral(`A série ${codigo} trouxe uma data fora do período: ${formatarMes(leitura.anoMes)}`);
+      throw new ErroBancoCentral(
+        `A série ${codigo} trouxe uma data fora do período: ${formatarMes(leitura.anoMes)}`,
+      );
     }
     doMes.push(leitura.taxa);
   }

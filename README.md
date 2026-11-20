@@ -29,12 +29,12 @@ As aplicações comparadas:
 
 Dados do [Sistema Gerenciador de Séries Temporais (SGS)](https://www3.bcb.gov.br/sgspub/) do Banco Central, buscados direto do navegador:
 
-| Série | Código |
-|---|---|
-| IPCA mensal | 433 |
-| Poupança (rentabilidade, aniversário no dia 1º) | 196 |
-| CDI diário | 12 |
-| Selic diária | 11 |
+| Série                                           | Código |
+| ----------------------------------------------- | ------ |
+| IPCA mensal                                     | 433    |
+| Poupança (rentabilidade, aniversário no dia 1º) | 196    |
+| CDI diário                                      | 12     |
+| Selic diária                                    | 11     |
 
 Na projeção, as expectativas vêm da [API de Expectativas (Olinda)](https://olinda.bcb.gov.br/olinda/servico/Expectativas/versao/v1/aplicacao) do Banco Central: a mediana da Selic e do IPCA para cada ano e do IPCA para cada mês. A meta da Selic de hoje vem da série 432, e a TR da série 7811. A Selic segue em linha reta até a expectativa de fim de cada ano, e o CDI fica 0,10 ponto abaixo dela.
 
@@ -77,14 +77,14 @@ npm run build      # gera o site em dist/
 
 ## Como o código está organizado
 
-| Arquivo | Papel |
-|---|---|
-| `src/bcb.ts` | Busca as séries no Banco Central, valida o formato (`unknown` → tipos) e converte texto em número |
-| `src/calculos.ts` | Contas puras: fatores, IR, IOF, custódia, carência, inflação e a trajetória mês a mês |
-| `src/datas.ts` | Contas puras com meses e dias corridos, sem `Date` local, para evitar problemas de fuso |
-| `src/simulacao.ts` | Valida o pedido, chama os dois arquivos acima e devolve um objeto `Simulacao` |
-| `src/App.tsx`, `src/Grafico.tsx` | A página: formulário, carrossel de aplicações, placar e gráfico |
-| `src/terminal.ts` | A mesma simulação, exibida no terminal |
+| Arquivo                          | Papel                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `src/bcb.ts`                     | Busca as séries no Banco Central, valida o formato (`unknown` → tipos) e converte texto em número |
+| `src/calculos.ts`                | Contas puras: fatores, IR, IOF, custódia, carência, inflação e a trajetória mês a mês             |
+| `src/datas.ts`                   | Contas puras com meses e dias corridos, sem `Date` local, para evitar problemas de fuso           |
+| `src/simulacao.ts`               | Valida o pedido, chama os dois arquivos acima e devolve um objeto `Simulacao`                     |
+| `src/App.tsx`, `src/Grafico.tsx` | A página: formulário, carrossel de aplicações, placar e gráfico                                   |
+| `src/terminal.ts`                | A mesma simulação, exibida no terminal                                                            |
 
 Feito com TypeScript (strict, sem `any`), React 19 e Vite.
 

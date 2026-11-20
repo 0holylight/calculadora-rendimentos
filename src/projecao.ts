@@ -40,7 +40,9 @@ export function selicMesAMes(
     const antes = pontos[posicao - 1];
     if (depois === undefined) return ultimo.valor;
     if (antes === undefined) return depois.valor;
-    return antes.valor + ((depois.valor - antes.valor) * (indice - antes.indice)) / (depois.indice - antes.indice);
+    return (
+      antes.valor + ((depois.valor - antes.valor) * (indice - antes.indice)) / (depois.indice - antes.indice)
+    );
   });
 }
 
@@ -52,7 +54,9 @@ export function ipcaMesAMes(
   inicio: AnoMes,
   meses: number,
 ): number[] {
-  const porMes = new Map(mensais.map((mensal) => [`${mensal.anoMes.ano}-${mensal.anoMes.mes}`, mensal.mediana]));
+  const porMes = new Map(
+    mensais.map((mensal) => [`${mensal.anoMes.ano}-${mensal.anoMes.mes}`, mensal.mediana]),
+  );
   const porAno = new Map(anuais.map((anual) => [anual.ano, anual.mediana]));
   const ultimaAnual = anuais[anuais.length - 1]?.mediana ?? 0;
 

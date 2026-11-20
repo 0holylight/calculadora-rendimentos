@@ -15,6 +15,9 @@ export const faixasDeMercado = {
 // Depois deste prazo sem revisão, a página avisa que a referência pode estar desatualizada
 export const validadeEmMeses = 6;
 
-export function referenciaDesatualizada(hoje: AnoMes, revisadoEm: AnoMes = faixasDeMercado.revisadoEm): boolean {
+export function referenciaDesatualizada(
+  hoje: AnoMes,
+  revisadoEm: AnoMes = faixasDeMercado.revisadoEm,
+): boolean {
   return mesesEntre(revisadoEm, hoje) > validadeEmMeses;
 }

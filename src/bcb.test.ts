@@ -132,7 +132,14 @@ describe("taxasDiariasPorMes", () => {
 describe("simular", () => {
   test("pedido inválido vira ErroPedido antes de qualquer busca", async () => {
     const falso = fingirBancoCentral(() => json([]));
-    const pedido = { modo: "historico" as const, valor: 0, meses: 12, aporteMensal: 0, percentualCdb: 100, percentualLciLca: 90 };
+    const pedido = {
+      modo: "historico" as const,
+      valor: 0,
+      meses: 12,
+      aporteMensal: 0,
+      percentualCdb: 100,
+      percentualLciLca: 90,
+    };
     await expect(simular(pedido)).rejects.toThrow(ErroPedido);
     await expect(simular({ ...pedido, valor: 1000, meses: 1.5 })).rejects.toThrow("número inteiro");
     await expect(simular({ ...pedido, valor: 1000, aporteMensal: -1 })).rejects.toThrow("negativo");

@@ -57,7 +57,13 @@ function texto(
 }
 
 // Diminui a fonte até o texto caber na largura disponível
-function caber(ctx: CanvasRenderingContext2D, conteudo: string, fonte: (px: number) => string, px: number, maximo: number): string {
+function caber(
+  ctx: CanvasRenderingContext2D,
+  conteudo: string,
+  fonte: (px: number) => string,
+  px: number,
+  maximo: number,
+): string {
   let tamanho = px;
   ctx.font = fonte(tamanho);
   while (ctx.measureText(conteudo).width > maximo && tamanho > 16) {
@@ -112,7 +118,15 @@ function fundo(ctx: CanvasRenderingContext2D): void {
   }
 }
 
-function painel(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, preenchimento: string, contorno: string): void {
+function painel(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  preenchimento: string,
+  contorno: string,
+): void {
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, 28);
   ctx.fillStyle = preenchimento;
@@ -156,7 +170,14 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
     (comAportes
       ? `${formatarReais(simulacao.valor)} + ${formatarReais(simulacao.aporteMensal)} por mês, durante ${prazo}`
       : `${formatarReais(simulacao.valor)} aplicados durante ${prazo}`) + (futuro ? " (projeção)" : "");
-  texto(ctx, pedido, margem, 392, caber(ctx, pedido, (px) => `500 ${px}px ${sans}`, 34, util), cor.texto);
+  texto(
+    ctx,
+    pedido,
+    margem,
+    392,
+    caber(ctx, pedido, (px) => `500 ${px}px ${sans}`, 34, util),
+    cor.texto,
+  );
   const periodo =
     `${futuro ? "Projeção de" : "De"} ${formatarMesExtenso(simulacao.inicio)} a ${formatarMesExtenso(simulacao.fim)}` +
     (premissas !== null
@@ -164,27 +185,82 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
       : comAportes
         ? ` · ${formatarReais(simulacao.totalAplicado)} investidos`
         : "");
-  texto(ctx, periodo, margem, 438, caber(ctx, periodo, (px) => `400 ${px}px ${sans}`, 26, util), cor.fraco);
+  texto(
+    ctx,
+    periodo,
+    margem,
+    438,
+    caber(ctx, periodo, (px) => `400 ${px}px ${sans}`, 26, util),
+    cor.fraco,
+  );
 
   // Destaque: o custo de deixar na poupança
   const custo = custoDaPoupanca(simulacao.aplicacoes);
   const topoDestaque = 486;
   if (custo !== null) {
     painel(ctx, margem, topoDestaque, util, 232, "rgba(233, 150, 127, 0.09)", "rgba(233, 150, 127, 0.35)");
-    texto(ctx, "O CUSTO DE DEIXAR NA POUPANÇA", margem + 40, topoDestaque + 62, `600 24px ${sans}`, cor.coral, "left", "3px");
-    texto(ctx, formatarReais(custo.diferenca), margem + 36, topoDestaque + 162, `400 108px ${serifa}`, cor.texto);
+    texto(
+      ctx,
+      "O CUSTO DE DEIXAR NA POUPANÇA",
+      margem + 40,
+      topoDestaque + 62,
+      `600 24px ${sans}`,
+      cor.coral,
+      "left",
+      "3px",
+    );
+    texto(
+      ctx,
+      formatarReais(custo.diferenca),
+      margem + 36,
+      topoDestaque + 162,
+      `400 108px ${serifa}`,
+      cor.texto,
+    );
     const legenda = `a menos que em ${custo.melhor.nome}, já descontados os impostos`;
-    texto(ctx, legenda, margem + 40, topoDestaque + 206, caber(ctx, legenda, (px) => `400 ${px}px ${sans}`, 26, util - 80), cor.suave);
+    texto(
+      ctx,
+      legenda,
+      margem + 40,
+      topoDestaque + 206,
+      caber(ctx, legenda, (px) => `400 ${px}px ${sans}`, 26, util - 80),
+      cor.suave,
+    );
   } else {
     painel(ctx, margem, topoDestaque, util, 232, cor.painel, cor.borda);
-    texto(ctx, "NESTE PERÍODO", margem + 40, topoDestaque + 62, `600 24px ${sans}`, cor.salvia, "left", "3px");
+    texto(
+      ctx,
+      "NESTE PERÍODO",
+      margem + 40,
+      topoDestaque + 62,
+      `600 24px ${sans}`,
+      cor.salvia,
+      "left",
+      "3px",
+    );
     texto(ctx, "A poupança foi a melhor", margem + 36, topoDestaque + 152, `400 76px ${serifa}`, cor.texto);
-    texto(ctx, "nenhuma outra opção rendeu mais", margem + 40, topoDestaque + 200, `400 26px ${sans}`, cor.suave);
+    texto(
+      ctx,
+      "nenhuma outra opção rendeu mais",
+      margem + 40,
+      topoDestaque + 200,
+      `400 26px ${sans}`,
+      cor.suave,
+    );
   }
 
   // Placar: o rendimento real de cada aplicação, do maior para o menor
   const topoPlacar = 786;
-  texto(ctx, "RENDIMENTO REAL (DEPOIS DE IMPOSTOS E INFLAÇÃO)", margem, topoPlacar, `600 22px ${sans}`, cor.salvia, "left", "3px");
+  texto(
+    ctx,
+    "RENDIMENTO REAL (DEPOIS DE IMPOSTOS E INFLAÇÃO)",
+    margem,
+    topoPlacar,
+    `600 22px ${sans}`,
+    cor.salvia,
+    "left",
+    "3px",
+  );
   const ordenadas = simulacao.aplicacoes.toSorted((a, b) => b.taxaReal - a.taxaReal);
   const maior = Math.max(...ordenadas.map((aplicacao) => Math.abs(aplicacao.taxaReal)), 0.01);
   ordenadas.forEach((aplicacao, i) => {
@@ -192,8 +268,24 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
     const positivo = aplicacao.taxaReal >= 0;
     const nome = aplicacao.nome + (aplicacao.emCarencia > 0 ? " *" : "");
     texto(ctx, nome, margem, y, `${i === 0 ? 600 : 500} 32px ${sans}`, i === 0 ? cor.texto : cor.suave);
-    const largTaxa = texto(ctx, formatarTaxa(aplicacao.taxaReal), largura - margem, y, `600 32px ${sans}`, positivo ? cor.verde : cor.coral, "right");
-    texto(ctx, formatarReais(aplicacao.valorFinal), largura - margem - largTaxa - 24, y, `400 24px ${sans}`, cor.fraco, "right");
+    const largTaxa = texto(
+      ctx,
+      formatarTaxa(aplicacao.taxaReal),
+      largura - margem,
+      y,
+      `600 32px ${sans}`,
+      positivo ? cor.verde : cor.coral,
+      "right",
+    );
+    texto(
+      ctx,
+      formatarReais(aplicacao.valorFinal),
+      largura - margem - largTaxa - 24,
+      y,
+      `400 24px ${sans}`,
+      cor.fraco,
+      "right",
+    );
 
     // Trilho e barra proporcional
     ctx.beginPath();
@@ -216,17 +308,38 @@ export async function desenharImagem(simulacao: Simulacao): Promise<Blob> {
   const inflacao = futuro
     ? `Inflação esperada de ${formatarTaxa(simulacao.taxaInflacao)}: ${comAportes ? `os ${formatarReais(simulacao.totalAplicado)} depositados` : `${formatarReais(simulacao.valor)} de hoje`} equivalerão a ${formatarReais(simulacao.montanteSobInflacao)} em ${fim}.`
     : `Inflação de ${formatarTaxa(simulacao.taxaInflacao)}: ${comAportes ? `os ${formatarReais(simulacao.totalAplicado)} depositados` : `${formatarReais(simulacao.valor)} de ${formatarMesExtenso(simulacao.inicio)}`} equivalem a ${formatarReais(simulacao.montanteSobInflacao)} hoje.`;
-  texto(ctx, inflacao, margem, yInflacao, caber(ctx, inflacao, (px) => `400 ${px}px ${sans}`, 26, util), cor.suave);
+  texto(
+    ctx,
+    inflacao,
+    margem,
+    yInflacao,
+    caber(ctx, inflacao, (px) => `400 ${px}px ${sans}`, 26, util),
+    cor.suave,
+  );
 
   // Rodapé
   ctx.fillStyle = cor.borda;
   ctx.fillRect(margem, altura - 138, util, 2);
-  texto(ctx, `Faça a sua simulação: ${endereco()}`, margem, altura - 84, caber(ctx, `Faça a sua simulação: ${endereco()}`, (px) => `600 ${px}px ${sans}`, 26, util), cor.verde);
+  texto(
+    ctx,
+    `Faça a sua simulação: ${endereco()}`,
+    margem,
+    altura - 84,
+    caber(ctx, `Faça a sua simulação: ${endereco()}`, (px) => `600 ${px}px ${sans}`, 26, util),
+    cor.verde,
+  );
   const carencia = simulacao.aplicacoes.some((a) => a.emCarencia > 0) ? " * parte ainda em carência." : "";
   const aviso = futuro
     ? `Expectativas do Focus (Banco Central).${carencia} Estimativa, não é promessa.`
     : `Dados do Banco Central.${carencia} Simulação do passado, não é recomendação.`;
-  texto(ctx, aviso, margem, altura - 46, caber(ctx, aviso, (px) => `400 ${px}px ${sans}`, 22, util), cor.fraco);
+  texto(
+    ctx,
+    aviso,
+    margem,
+    altura - 46,
+    caber(ctx, aviso, (px) => `400 ${px}px ${sans}`, 22, util),
+    cor.fraco,
+  );
 
   return new Promise((resolver, rejeitar) => {
     canvas.toBlob((blob) => {

@@ -8,18 +8,14 @@ const inclinacaoMaxima = 3; // graus: quanto o painel com data-tilt inclina quan
 
 export function useLuzDoCursor(): void {
   useEffect(() => {
-    const semMovimento = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let x = fora;
     let y = fora;
     let quadro = 0;
 
     function atualizar() {
       quadro = 0;
-      for (const painel of document.querySelectorAll<HTMLElement>(
-        "[data-luz]",
-      )) {
+      for (const painel of document.querySelectorAll<HTMLElement>("[data-luz]")) {
         const caixa = painel.getBoundingClientRect();
         const dx = Math.max(caixa.left - x, 0, x - caixa.right);
         const dy = Math.max(caixa.top - y, 0, y - caixa.bottom);
@@ -27,10 +23,7 @@ export function useLuzDoCursor(): void {
 
         painel.style.setProperty("--luz-x", `${x - caixa.left}px`);
         painel.style.setProperty("--luz-y", `${y - caixa.top}px`);
-        painel.style.setProperty(
-          "--luz-perto",
-          Math.max(0, 1 - distancia / alcance).toFixed(3),
-        );
+        painel.style.setProperty("--luz-perto", Math.max(0, 1 - distancia / alcance).toFixed(3));
         painel.style.setProperty("--luz-dentro", distancia === 0 ? "1" : "0");
 
         // Tilt: só em quem tem data-tilt. u e v vão de −0,5 a 0,5 (posição do cursor em relação ao centro).
@@ -38,14 +31,8 @@ export function useLuzDoCursor(): void {
           const inclinar = distancia === 0 && !semMovimento;
           const u = (x - caixa.left) / caixa.width - 0.5;
           const v = (y - caixa.top) / caixa.height - 0.5;
-          painel.style.setProperty(
-            "--tilt-x",
-            `${inclinar ? -v * 2 * inclinacaoMaxima : 0}deg`,
-          );
-          painel.style.setProperty(
-            "--tilt-y",
-            `${inclinar ? u * 2 * inclinacaoMaxima : 0}deg`,
-          );
+          painel.style.setProperty("--tilt-x", `${inclinar ? -v * 2 * inclinacaoMaxima : 0}deg`);
+          painel.style.setProperty("--tilt-y", `${inclinar ? u * 2 * inclinacaoMaxima : 0}deg`);
         }
       }
     }
@@ -90,10 +77,7 @@ export function useLuzDoCursor(): void {
       const caixa = painel.getBoundingClientRect();
       const px = x - caixa.left;
       const py = y - caixa.top;
-      const raio = Math.hypot(
-        Math.max(px, caixa.width - px),
-        Math.max(py, caixa.height - py),
-      );
+      const raio = Math.hypot(Math.max(px, caixa.width - px), Math.max(py, caixa.height - py));
 
       const onda = document.createElement("span");
       onda.className = "onda";

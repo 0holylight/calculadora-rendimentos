@@ -13,14 +13,29 @@ import {
 
 describe("meses", () => {
   test("somar meses atravessa a virada do ano nos dois sentidos", () => {
-    expect(somarMeses({ ano: 2025, mes: 11 }, 2)).toEqual({ ano: 2026, mes: 1 });
-    expect(somarMeses({ ano: 2026, mes: 1 }, -1)).toEqual({ ano: 2025, mes: 12 });
-    expect(somarMeses({ ano: 2026, mes: 10 }, -12)).toEqual({ ano: 2025, mes: 10 });
+    expect(somarMeses({ ano: 2025, mes: 11 }, 2)).toEqual({
+      ano: 2026,
+      mes: 1,
+    });
+    expect(somarMeses({ ano: 2026, mes: 1 }, -1)).toEqual({
+      ano: 2025,
+      mes: 12,
+    });
+    expect(somarMeses({ ano: 2026, mes: 10 }, -12)).toEqual({
+      ano: 2025,
+      mes: 10,
+    });
   });
 
   test("uma janela de 12 meses que termina em out/2026 começa em nov/2025", () => {
-    expect(inicioDaJanela({ ano: 2026, mes: 10 }, 12)).toEqual({ ano: 2025, mes: 11 });
-    expect(inicioDaJanela({ ano: 2026, mes: 10 }, 1)).toEqual({ ano: 2026, mes: 10 });
+    expect(inicioDaJanela({ ano: 2026, mes: 10 }, 12)).toEqual({
+      ano: 2025,
+      mes: 11,
+    });
+    expect(inicioDaJanela({ ano: 2026, mes: 10 }, 1)).toEqual({
+      ano: 2026,
+      mes: 10,
+    });
   });
 
   test("meses entre duas datas", () => {

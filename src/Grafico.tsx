@@ -15,8 +15,7 @@ function marcasDoEixo(minimo: number, maximo: number): number[] {
   const bruto = (maximo - minimo) / 4 || 1;
   const potencia = 10 ** Math.floor(Math.log10(bruto));
   const passo =
-    [1, 2, 2.5, 5, 10].map((m) => m * potencia).find((candidato) => candidato >= bruto) ??
-    10 * potencia;
+    [1, 2, 2.5, 5, 10].map((m) => m * potencia).find((candidato) => candidato >= bruto) ?? 10 * potencia;
   const marcas: number[] = [];
   for (let v = Math.floor(minimo / passo) * passo; v <= maximo + passo / 2; v += passo) {
     marcas.push(Math.round(v * 100) / 100);
@@ -63,9 +62,7 @@ export function GraficoGanhoReal({
     nome: aplicacao.nome,
     valores: [
       0,
-      ...aplicacao.trajetoria.map(
-        (valor, k) => valor - (simulacao.trajetoriaInflacao[k] ?? valor),
-      ),
+      ...aplicacao.trajetoria.map((valor, k) => valor - (simulacao.trajetoriaInflacao[k] ?? valor)),
     ],
   }));
 
@@ -131,11 +128,7 @@ export function GraficoGanhoReal({
         <ul className="grafico-legenda" aria-label="Escolha a aplicação em destaque">
           {series.map((serie) => (
             <li key={serie.id}>
-              <button
-                type="button"
-                aria-pressed={serie.id === ativa}
-                onClick={() => aoSelecionar(serie.id)}
-              >
+              <button type="button" aria-pressed={serie.id === ativa} onClick={() => aoSelecionar(serie.id)}>
                 <span className="grafico-chave" aria-hidden="true" />
                 {serie.nome}
               </button>
@@ -167,7 +160,13 @@ export function GraficoGanhoReal({
                 y1={y(marca)}
                 y2={y(marca)}
               />
-              <text className="grafico-eixo" x={margem.esquerda - 10} y={y(marca)} dy="0.32em" textAnchor="end">
+              <text
+                className="grafico-eixo"
+                x={margem.esquerda - 10}
+                y={y(marca)}
+                dy="0.32em"
+                textAnchor="end"
+              >
                 {formatarReaisEixo(marca, compacto)}
               </text>
             </g>
@@ -252,11 +251,7 @@ export function GraficoGanhoReal({
         {foco !== null && dataFoco !== undefined && (
           <div
             className="grafico-dica"
-            style={
-              tooltipNaDireita
-                ? { left: x(foco) + 14 }
-                : { right: largura - x(foco) + 14 }
-            }
+            style={tooltipNaDireita ? { left: x(foco) + 14 } : { right: largura - x(foco) + 14 }}
           >
             <p className="grafico-dica-data">
               {foco === 0 ? "Início" : `Resgate em 1º de ${formatarMesCurto(dataFoco)}`}

@@ -24,13 +24,21 @@ function aplicacao(id: ResultadoAplicacao["id"], valorFinal: number, emCarencia 
 
 describe("custo de deixar na poupança", () => {
   test("compara com a melhor alternativa", () => {
-    const custo = custoDaPoupanca([aplicacao("poupanca", 1080), aplicacao("cdb", 1110), aplicacao("tesouroSelic", 1100)]);
+    const custo = custoDaPoupanca([
+      aplicacao("poupanca", 1080),
+      aplicacao("cdb", 1110),
+      aplicacao("tesouroSelic", 1100),
+    ]);
     expect(custo?.melhor.id).toBe("cdb");
     expect(custo?.diferenca).toBeCloseTo(30, 10);
   });
 
   test("ignora quem ainda está em carência", () => {
-    const custo = custoDaPoupanca([aplicacao("poupanca", 1080), aplicacao("lciLca", 1200, 500), aplicacao("cdb", 1110)]);
+    const custo = custoDaPoupanca([
+      aplicacao("poupanca", 1080),
+      aplicacao("lciLca", 1200, 500),
+      aplicacao("cdb", 1110),
+    ]);
     expect(custo?.melhor.id).toBe("cdb");
   });
 

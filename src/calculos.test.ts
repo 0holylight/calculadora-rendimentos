@@ -140,7 +140,13 @@ describe("desempenho de uma aplicação", () => {
     // Saldo parado em R$ 20 mil por 12 meses: 0,20% ao ano sobre R$ 10 mil = R$ 20
     const meses = 12;
     const aportes = listaDeAportes(20_000, 0, meses);
-    const resultado = desempenho(aportes, Array(meses).fill(1), Array(meses).fill(400), regrasTesouroSelic, 20_000);
+    const resultado = desempenho(
+      aportes,
+      Array(meses).fill(1),
+      Array(meses).fill(400),
+      regrasTesouroSelic,
+      20_000,
+    );
     expect(resultado.custodia).toBeCloseTo(20, 10);
 
     const pequeno = desempenho([9_000], [1], [400], regrasTesouroSelic, 9_000);

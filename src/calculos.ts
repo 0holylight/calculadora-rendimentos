@@ -41,8 +41,8 @@ export function aliquotaIr(dias: number): number {
 
 // IOF sobre o rendimento, para resgate antes de 30 dias (tabela do Decreto 6.306/2007)
 const tabelaIof = [
-  96, 93, 90, 86, 83, 80, 76, 73, 70, 66, 63, 60, 56, 53, 50, 46, 43, 40, 36, 33, 30, 26, 23, 20,
-  16, 13, 10, 6, 3,
+  96, 93, 90, 86, 83, 80, 76, 73, 70, 66, 63, 60, 56, 53, 50, 46, 43, 40, 36, 33, 30, 26, 23, 20, 16, 13, 10,
+  6, 3,
 ];
 
 export function aliquotaIof(dias: number): number {
@@ -85,9 +85,7 @@ export function fatoresMensais(taxas: number[]): number[] {
 // Série diária agrupada por mês (CDI, Selic): o fator de cada mês é o produto dos dias úteis dele.
 // O percentual (ex.: 110% do CDI) multiplica a TAXA de cada dia, nunca o fator.
 export function fatoresDiariosPorMes(taxasPorMes: number[][], percentual = 100): number[] {
-  return taxasPorMes.map((taxasDoMes) =>
-    taxasParaFator(taxasDoMes.map((taxa) => (taxa * percentual) / 100)),
-  );
+  return taxasPorMes.map((taxasDoMes) => taxasParaFator(taxasDoMes.map((taxa) => (taxa * percentual) / 100)));
 }
 
 // Para cada mês i: quanto o dinheiro que entra no início do mês i cresce até o fim do período.
@@ -222,9 +220,12 @@ export function trajetoria(
   diasPorResgate: number[][],
   regras: RegrasAplicacao,
 ): number[] {
-  conferirTamanhos(aportes, fatores, diasPorResgate.map(() => 0));
+  conferirTamanhos(
+    aportes,
+    fatores,
+    diasPorResgate.map(() => 0),
+  );
   return diasPorResgate.map(
-    (dias, k) =>
-      desempenho(aportes.slice(0, k + 1), fatores.slice(0, k + 1), dias, regras, 1).valorFinal,
+    (dias, k) => desempenho(aportes.slice(0, k + 1), fatores.slice(0, k + 1), dias, regras, 1).valorFinal,
   );
 }
