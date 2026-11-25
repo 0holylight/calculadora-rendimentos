@@ -1,3 +1,5 @@
+<p align="right">🇧🇷 Português · <a href="README.en.md">🇺🇸 English</a></p>
+
 # Calculadora de Rendimentos
 
 **Quanto o meu dinheiro rende de verdade?**
@@ -86,7 +88,13 @@ npm run build      # gera o site em dist/
 | `src/App.tsx`, `src/Grafico.tsx` | A página: formulário, carrossel de aplicações, placar e gráfico                                   |
 | `src/terminal.ts`                | A mesma simulação, exibida no terminal                                                            |
 
+## Qualidade e deploy
+
 Feito com TypeScript (strict, sem `any`), React 19 e Vite.
+
+- **62 testes** com Vitest cobrindo as contas, as datas e a busca de dados (Banco Central simulado, sem internet).
+- **Deploy contínuo** com GitHub Actions: a cada push na `main`, os testes rodam e o site só é publicado no GitHub Pages se todos passarem.
+- Formatação padronizada com Prettier.
 
 ## Licença
 
